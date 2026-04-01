@@ -203,6 +203,8 @@
 .home-reasons,
 .home-bottom {
     padding-top: 1rem;
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 760px;
 }
 
 .home-section-title {
@@ -502,6 +504,8 @@
         radial-gradient(circle at top left, rgba(134, 239, 172, 0.2), transparent 28%),
         linear-gradient(180deg, #e9f7f1 0%, #dff2e8 100%);
     border-top: 1px solid #cfe5db;
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 320px;
 }
 
 .home-footer-grid {

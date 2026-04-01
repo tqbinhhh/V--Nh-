@@ -85,11 +85,14 @@ function renderBrand(subtitle) {
 }
 
 // Signed-in users only need a compact action row: identity chip + logout button.
-function renderSignedInActions(session) {
+function renderSignedInActions(session, { logoutButtonId = 'app-logout-btn', logoutButtonAttr = '' } = {}) {
+    const idAttr = logoutButtonId ? `id="${escapeHtml(logoutButtonId)}"` : '';
+    const extraAttr = logoutButtonAttr ? ` ${logoutButtonAttr}` : '';
+
     return `
         <div class="app-user-actions">
             <span class="app-user-chip">${escapeHtml(getUserLabel(session))}</span>
-            <button type="button" class="app-login-link app-logout-btn" id="app-logout-btn">Đăng xuất</button>
+            <button type="button" class="app-login-link app-logout-btn" ${idAttr}${extraAttr}>Đăng xuất</button>
         </div>
     `;
 }
@@ -98,6 +101,60 @@ function renderSignedInActions(session) {
 function renderGuestActions() {
     return `
         <a href="${buildAuthUrl(DASHBOARD_HREF)}" class="app-login-link">Đăng nhập</a>
+    `;
+}
+
+function renderAppMobileMenu(activePage, session, isAdmin) {
+    const visibleNavItems = getVisibleNavItems(isAdmin);
+    const navLinks = visibleNavItems
+        .map((item) => {
+            const activeClass = item.key === activePage ? 'is-active' : '';
+            return `
+                <a href="${item.href}" class="app-mobile-menu-link ${activeClass}">
+                    <span>${escapeHtml(item.label)}</span>
+                    ${item.key === activePage ? '<span class="app-mobile-menu-meta">Đang xem</span>' : ''}
+                </a>
+            `;
+        })
+        .join('');
+
+    const actions = session
+        ? renderSignedInActions(session, { logoutButtonId: '', logoutButtonAttr: 'data-app-logout-trigger="true"' })
+        : renderGuestActions();
+
+    return `
+        <div id="app-mobile-menu" class="app-mobile-menu" hidden>
+            <div class="app-mobile-menu-section">
+                <span class="app-mobile-menu-label">Điều hướng nhanh</span>
+                <div class="app-mobile-menu-links">
+                    ${navLinks}
+                </div>
+            </div>
+            <div class="app-mobile-menu-section">
+                <span class="app-mobile-menu-label">Tài khoản</span>
+                <div class="app-mobile-menu-actions">
+                    ${actions}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderMobileMenuToggle() {
+    return `
+        <button
+            type="button"
+            id="app-mobile-menu-toggle"
+            class="app-mobile-menu-toggle"
+            aria-controls="app-mobile-menu"
+            aria-expanded="false"
+            aria-label="Mở menu điều hướng"
+        >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            <span class="app-mobile-menu-toggle-text">Menu</span>
+        </button>
     `;
 }
 
@@ -125,7 +182,7 @@ function renderAppHeader(activePage, session, isAdmin) {
         .join('');
 
     const actions = session
-        ? renderSignedInActions(session)
+        ? renderSignedInActions(session, { logoutButtonId: 'app-logout-btn' })
         : renderGuestActions();
 
     return `
@@ -133,14 +190,16 @@ function renderAppHeader(activePage, session, isAdmin) {
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="app-nav-shell">
                     ${renderBrand('Từng bước nhỏ, giấc mơ lớn')}
-                    <div class="hidden md:block">
+                    <div class="app-nav-desktop">
                         <div class="app-nav-links">
                             ${navLinks}
                         </div>
+                        <div class="app-nav-actions">
+                            ${actions}
+                        </div>
                     </div>
-                    <div class="app-nav-actions">
-                        ${actions}
-                    </div>
+                    ${renderMobileMenuToggle()}
+                    ${renderAppMobileMenu(activePage, session, isAdmin)}
                 </div>
             </div>
         </header>
@@ -278,9 +337,59 @@ async function mountSiteLayout() {
         syncGuestAuthNotice(getGuestBannerCopy(activePage).copy, getCurrentRelativeTarget());
     }
 
-    document.getElementById('app-logout-btn')?.addEventListener('click', () => {
-        void signOutAndRedirect(getCurrentRelativeTarget());
+    document.querySelectorAll('[data-app-logout-trigger], #app-logout-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+            void signOutAndRedirect(getCurrentRelativeTarget());
+        });
     });
+
+    const mobileMenuToggle = document.getElementById('app-mobile-menu-toggle');
+    const mobileMenu = document.getElementById('app-mobile-menu');
+
+    if (mobileMenuToggle && mobileMenu) {
+        const closeMobileMenu = () => {
+            mobileMenu.hidden = true;
+            mobileMenu.classList.remove('is-open');
+            mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        };
+
+        const openMobileMenu = () => {
+            mobileMenu.hidden = false;
+            mobileMenu.classList.add('is-open');
+            mobileMenuToggle.setAttribute('aria-expanded', 'true');
+        };
+
+        mobileMenuToggle.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (mobileMenu.hidden) {
+                openMobileMenu();
+                return;
+            }
+
+            closeMobileMenu();
+        });
+
+        mobileMenu.addEventListener('click', (event) => {
+            if (event.target instanceof Element && event.target.closest('a, button')) {
+                closeMobileMenu();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (mobileMenu.hidden) return;
+            if (!(event.target instanceof Element)) return;
+            if (mobileMenu.contains(event.target) || mobileMenuToggle.contains(event.target)) return;
+            closeMobileMenu();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !mobileMenu.hidden) {
+                closeMobileMenu();
+            }
+        });
+    }
 }
 
 void mountSiteLayout();

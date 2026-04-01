@@ -180,12 +180,31 @@ function formatCurrencyInputField(input) {
 
 function getMissingUserProfileColumns(error) {
     const text = `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`.toLowerCase();
-    const candidates = ['monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
+    const candidates = ['email', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
     return candidates.filter((column) => (
         text.includes(`'${column}'`) ||
         text.includes(`"${column}"`) ||
         text.includes(column)
     ));
+}
+
+async function upsertUserProfileWithFallback(payloads) {
+    let lastError = null;
+
+    for (const payload of payloads) {
+        const { data, error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' }).select('*').maybeSingle();
+        if (!error) {
+            return data || null;
+        }
+
+        lastError = error;
+        const missingColumns = getMissingUserProfileColumns(error);
+        if (!missingColumns.length) {
+            break;
+        }
+    }
+
+    throw lastError || new Error('Không thể lưu hồ sơ người dùng.');
 }
 
 function formatRatio(value = 0) {
@@ -1299,15 +1318,24 @@ async function saveDailyLimit() {
     setDailyLimitFeedback(limit > 0 ? 'Đang lưu hạn mức ngày...' : 'Đang tắt hạn mức ngày...', 'info');
 
     try {
-        const payload = {
+        const basePayload = {
             user_id: state.session.user.id,
-            email: state.session.user.email || state.profile?.email || '',
-            full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng',
             daily_spending_limit: limit
         };
 
-        const { data, error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' }).select('*').maybeSingle();
-        if (error) throw error;
+        const payloads = [
+            {
+                ...basePayload,
+                email: state.session.user.email || state.profile?.email || '',
+                full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng'
+            },
+            {
+                ...basePayload,
+                full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng'
+            }
+        ];
+
+        const data = await upsertUserProfileWithFallback(payloads);
 
         state.profile = data || {
             ...state.profile,
@@ -1378,15 +1406,24 @@ async function saveJarLimit() {
         };
         nextLimits[selectedKey] = limit;
 
-        const payload = {
+        const basePayload = {
             user_id: state.session.user.id,
-            email: state.session.user.email || state.profile?.email || '',
-            full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng',
             spending_limits: nextLimits
         };
 
-        const { data, error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' }).select('*').maybeSingle();
-        if (error) throw error;
+        const payloads = [
+            {
+                ...basePayload,
+                email: state.session.user.email || state.profile?.email || '',
+                full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng'
+            },
+            {
+                ...basePayload,
+                full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng'
+            }
+        ];
+
+        const data = await upsertUserProfileWithFallback(payloads);
 
         state.profile = data || {
             ...state.profile,

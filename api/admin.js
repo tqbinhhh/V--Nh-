@@ -32,7 +32,6 @@ function isValidEmail(value) {
 function buildUserProfilePayload({ userId, email, fullName, includeLimits = true }) {
     const payload = {
         user_id: userId,
-        email,
         full_name: fullName
     };
 
@@ -42,12 +41,18 @@ function buildUserProfilePayload({ userId, email, fullName, includeLimits = true
         payload.spending_limits = {};
     }
 
+    // Older databases may not have an email column in public.user_profiles.
+    // The auth email still lives in auth.users, so the profile row can safely omit it.
+    if (email) {
+        payload.email = email;
+    }
+
     return payload;
 }
 
 function getMissingUserProfileColumns(error) {
     const text = `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`.toLowerCase();
-    const candidates = ['monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
+    const candidates = ['email', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
     return candidates.filter((column) => (
         text.includes(`'${column}'`) ||
         text.includes(`"${column}"`) ||
@@ -141,7 +146,9 @@ async function handleRegister(req, res, env) {
     if (userId) {
         const profilePayloads = [
             buildUserProfilePayload({ userId, email, fullName, includeLimits: true }),
-            buildUserProfilePayload({ userId, email, fullName, includeLimits: false })
+            buildUserProfilePayload({ userId, email: '', fullName, includeLimits: true }),
+            buildUserProfilePayload({ userId, email, fullName, includeLimits: false }),
+            buildUserProfilePayload({ userId, email: '', fullName, includeLimits: false })
         ];
         const { error: profileError } = await upsertUserProfileWithFallback(adminClient, profilePayloads);
 

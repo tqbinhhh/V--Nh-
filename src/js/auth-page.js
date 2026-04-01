@@ -21,12 +21,16 @@ function sleep(ms) {
     return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function buildUserProfilePayload(user, fullName, includeLimits = true) {
+function buildUserProfilePayload(user, fullName, { includeEmail = true, includeLimits = true } = {}) {
     const payload = {
         user_id: user.id,
-        email: normalizeEmail(user.email || ''),
         full_name: String(fullName || user.user_metadata?.full_name || user.email || 'Người dùng').trim() || 'Người dùng'
     };
+
+    if (includeEmail) {
+        // Keep email optional so older profiles without an email column can still be saved.
+        payload.email = normalizeEmail(user.email || '');
+    }
 
     if (includeLimits) {
         payload.monthly_spending_limit = 0;
@@ -39,12 +43,31 @@ function buildUserProfilePayload(user, fullName, includeLimits = true) {
 
 function getMissingUserProfileColumns(error) {
     const text = `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`.toLowerCase();
-    const candidates = ['monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
+    const candidates = ['email', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
     return candidates.filter((column) => (
         text.includes(`'${column}'`) ||
         text.includes(`"${column}"`) ||
         text.includes(column)
     ));
+}
+
+async function upsertUserProfileWithFallback(payloads) {
+    let lastError = null;
+
+    for (const payload of payloads) {
+        const { error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' }).select('*').maybeSingle();
+        if (!error) {
+            return;
+        }
+
+        lastError = error;
+        const missingColumns = getMissingUserProfileColumns(error);
+        if (!missingColumns.length) {
+            break;
+        }
+    }
+
+    throw lastError || new Error('Không thể lưu hồ sơ người dùng.');
 }
 
 async function registerAccount(fullName, email, password) {
@@ -102,25 +125,13 @@ async function ensureUserProfile(user, fullName) {
     if (!user?.id) return;
 
     const payloads = [
-        buildUserProfilePayload(user, fullName, true),
-        buildUserProfilePayload(user, fullName, false)
+        buildUserProfilePayload(user, fullName, { includeEmail: true, includeLimits: true }),
+        buildUserProfilePayload(user, fullName, { includeEmail: false, includeLimits: true }),
+        buildUserProfilePayload(user, fullName, { includeEmail: true, includeLimits: false }),
+        buildUserProfilePayload(user, fullName, { includeEmail: false, includeLimits: false })
     ];
 
-    let lastError = null;
-    for (const payload of payloads) {
-        const { error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' }).select('*').maybeSingle();
-        if (!error) {
-            return;
-        }
-
-        lastError = error;
-        const missingColumns = getMissingUserProfileColumns(error);
-        if (!missingColumns.length) {
-            break;
-        }
-    }
-
-    throw lastError || new Error('Không thể lưu hồ sơ người dùng.');
+    await upsertUserProfileWithFallback(payloads);
 }
 
 function setMessage(message = '', tone = 'error') {

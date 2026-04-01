@@ -50,7 +50,7 @@ body[data-page="login"] #site-footer {
     color: white;
     background:
         linear-gradient(180deg, rgba(13, 49, 37, 0.18) 0%, rgba(8, 32, 24, 0.82) 100%),
-        url('/src/images/hero-photo.png') center / cover no-repeat,
+        url('/src/images/hero-photo.jpg') center / cover no-repeat,
         linear-gradient(145deg, #0f5a41 0%, #1d7c58 42%, #123d2f 100%);
     box-shadow: var(--auth-shadow);
     isolation: isolate;
