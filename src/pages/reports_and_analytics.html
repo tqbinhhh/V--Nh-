@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Báo cáo &amp; Phân tích - Vi Nho Finance</title>
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/pages/reports.css" />
+    <script type="module" src="/src/js/auth-route-guard.js"></script>
+</head>
+<body data-page="reports" class="reports-page min-h-screen bg-background text-text-primary">
+    <div id="site-header"></div>
+
+    <main class="reports-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <section class="reports-hero">
+            <div class="reports-hero-copy">
+                <span class="reports-eyebrow">PHÂN TÍCH TÀI CHÍNH</span>
+                <h1 class="reports-title">Báo cáo &amp; Phân tích</h1>
+                <p class="reports-subtitle">
+                    Cái nhìn tổng quan về tình hình tài chính của bạn trong tháng này, bám sát dữ liệu thật từ Dashboard và Hệ thống Hũ.
+                </p>
+            </div>
+
+            <div class="reports-hero-actions">
+                <button id="reports-export-btn" type="button" class="reports-ghost-btn">Xuất File PDF</button>
+                <div id="reports-month-pill" class="reports-month-pill">Tháng này: Tháng 0</div>
+            </div>
+        </section>
+
+        <div id="reports-sync-status" class="reports-sync-status" role="status" aria-live="polite">
+            Đang đồng bộ dữ liệu báo cáo...
+        </div>
+
+        <section class="reports-metrics-grid">
+            <article class="reports-metric-card">
+                <div class="reports-metric-head">
+                    <span class="reports-metric-icon tone-income" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="5" y="6" width="14" height="12" rx="3" stroke="currentColor" stroke-width="1.8" />
+                            <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <span id="report-income-delta" class="reports-metric-delta is-positive">0%</span>
+                </div>
+                <p class="reports-metric-label">Tổng Thu nhập (Income)</p>
+                <strong id="report-income-value" class="reports-metric-value">0đ</strong>
+                <p id="report-income-copy" class="reports-metric-copy">So với tháng trước</p>
+            </article>
+
+            <article class="reports-metric-card">
+                <div class="reports-metric-head">
+                    <span class="reports-metric-icon tone-expense" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="5" y="6" width="14" height="12" rx="3" stroke="currentColor" stroke-width="1.8" />
+                            <path d="M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <span id="report-expense-delta" class="reports-metric-delta is-negative">0%</span>
+                </div>
+                <p class="reports-metric-label">Tổng Chi tiêu (Expenses)</p>
+                <strong id="report-expense-value" class="reports-metric-value">0đ</strong>
+                <p id="report-expense-copy" class="reports-metric-copy">So với tháng trước</p>
+            </article>
+
+            <article class="reports-metric-card is-savings">
+                <div class="reports-metric-head">
+                    <span class="reports-metric-icon tone-savings" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M7 8h10M7 12h7M7 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                            <path d="M6.5 4h11A1.5 1.5 0 0 1 19 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 18.5v-13A1.5 1.5 0 0 1 6.5 4Z" stroke="currentColor" stroke-width="1.8" />
+                        </svg>
+                    </span>
+                    <span id="report-savings-delta" class="reports-metric-delta is-positive on-dark">0%</span>
+                </div>
+                <p class="reports-metric-label">Tiết kiệm ròng (Net Savings)</p>
+                <strong id="report-savings-value" class="reports-metric-value">0đ</strong>
+                <p id="report-savings-copy" class="reports-metric-copy">Thu nhập trừ chi tiêu</p>
+            </article>
+        </section>
+
+        <section class="reports-analytics-grid">
+            <article class="reports-panel reports-donut-panel">
+                <div class="reports-panel-head">
+                    <div>
+                        <h2 class="reports-panel-title">Phân tích 6 Hũ</h2>
+                        <p class="reports-panel-copy">Tỉ lệ chi tiêu theo mục đích trong tháng này</p>
+                    </div>
+                </div>
+
+                <div class="reports-donut-layout">
+                    <div id="report-jar-donut" class="reports-donut-chart">
+                        <div class="reports-donut-center">
+                            <strong id="report-jar-distribution-value">0%</strong>
+                            <span id="report-jar-distribution-copy">Đã gán vào hũ</span>
+                        </div>
+                    </div>
+
+                    <div id="report-jar-legend" class="reports-jar-legend"></div>
+                </div>
+            </article>
+
+            <article class="reports-panel reports-trend-panel">
+                <div class="reports-panel-head">
+                    <div>
+                        <h2 class="reports-panel-title">Xu hướng 6 tháng</h2>
+                        <p class="reports-panel-copy">So sánh Thu nhập và Chi tiêu theo từng tháng</p>
+                    </div>
+                    <div class="reports-trend-legend">
+                        <span><i class="dot is-income"></i>Thu nhập</span>
+                        <span><i class="dot is-expense"></i>Chi tiêu</span>
+                    </div>
+                </div>
+
+                <div id="report-trend-chart" class="reports-trend-chart"></div>
+            </article>
+        </section>
+
+        <section class="reports-insight-banner" aria-labelledby="report-insight-title">
+            <div class="reports-insight-main">
+                <div class="reports-insight-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M10 6 8.5 9.5 5 11l3.5 1.5L10 16l1.5-3.5L15 11l-3.5-1.5L10 6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                        <path d="M17 9.5 16.2 11.2 14.5 12l1.7.8.8 1.7.8-1.7 1.7-.8-1.7-.8-.8-1.7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                    </svg>
+                </div>
+
+                <div class="reports-insight-content">
+                    <span class="reports-insight-kicker">Trợ lý AI báo cáo</span>
+                    <h2 class="reports-insight-title">Bấm để xem cảnh báo và nhắc nhở.</h2>
+                    <p class="reports-insight-copy">
+                        Phần phân tích chi tiết sẽ hiện ra khi bạn cần. Chat với AI luôn nằm bên phải để hỏi nhanh bất cứ lúc nào.
+                    </p>
+
+                    <details class="reports-insight-disclosure">
+                        <summary class="reports-insight-toggle">
+                            <span class="reports-insight-toggle-copy">
+                                <strong class="reports-insight-toggle-title">Mở trợ lý AI báo cáo</strong>
+                                <span id="reports-ai-toggle-meta" class="reports-insight-toggle-meta">0 cảnh báo · 0 nhắc nhở</span>
+                            </span>
+                            <span class="reports-insight-toggle-state" aria-hidden="true">
+                                <span class="reports-insight-toggle-state-closed">Mở</span>
+                                <span class="reports-insight-toggle-state-open">Ẩn</span>
+                            </span>
+                        </summary>
+
+                        <div class="reports-insight-details">
+                            <h3 id="report-insight-title" class="reports-insight-title">Đang phân tích hành vi tài chính của bạn.</h3>
+                            <p id="report-insight-copy" class="reports-insight-copy">
+                                Khi dữ liệu giao dịch được tải xong, AI sẽ tổng hợp cảnh báo, nhắc nhở và gợi ý hành động theo đúng dữ liệu tháng này.
+                            </p>
+
+                            <div class="reports-insight-meta">
+                                <div class="reports-insight-chip">
+                                    <span>Đang xem</span>
+                                    <strong id="reports-ai-context-month">Tháng này</strong>
+                                </div>
+                                <div class="reports-insight-chip">
+                                    <span>Cảnh báo</span>
+                                    <strong id="reports-ai-alert-count">0</strong>
+                                </div>
+                                <div class="reports-insight-chip">
+                                    <span>Nhắc nhở</span>
+                                    <strong id="reports-ai-reminder-count">0</strong>
+                                </div>
+                            </div>
+
+                            <div class="reports-insight-block">
+                                <div class="reports-insight-block-head">
+                                    <span>Cảnh báo và nhắc nhở</span>
+                                    <small id="reports-ai-sync-note">AI sẽ cập nhật theo dữ liệu mới nhất.</small>
+                                </div>
+                                <div class="reports-insight-panels">
+                                    <section class="reports-insight-panel" aria-labelledby="reports-ai-alert-title">
+                                        <div class="reports-insight-panel-head">
+                                            <strong id="reports-ai-alert-title">Cảnh báo</strong>
+                                            <span id="reports-ai-alert-panel-count">0</span>
+                                        </div>
+                                        <div id="report-insight-alerts" class="reports-insight-list"></div>
+                                    </section>
+
+                                    <section class="reports-insight-panel" aria-labelledby="reports-ai-reminder-title">
+                                        <div class="reports-insight-panel-head">
+                                            <strong id="reports-ai-reminder-title">Nhắc nhở</strong>
+                                            <span id="reports-ai-reminder-panel-count">0</span>
+                                        </div>
+                                        <div id="report-insight-reminders" class="reports-insight-list"></div>
+                                    </section>
+                                </div>
+                            </div>
+
+                            <div class="reports-insight-actions">
+                                <a id="report-insight-action" class="reports-insight-btn" href="/src/pages/multi_jar_budget_system.html">
+                                    Xem chi tiết lời khuyên
+                                </a>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <aside class="reports-ai-chat" aria-label="Trò chuyện với AI báo cáo">
+                <div class="reports-ai-chat-head">
+                    <div class="reports-ai-chat-brand">
+                        <span class="reports-ai-chat-avatar" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M7.5 9.5h9l-1 8.4a1.5 1.5 0 0 1-1.5 1.2H10a1.5 1.5 0 0 1-1.5-1.2l-1-8.4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                                <path d="M9 9.5V8a3 3 0 0 1 6 0v1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                <path d="M9 13h.01M15 13h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                            </svg>
+                        </span>
+                        <div>
+                        <span class="reports-ai-chat-kicker">Chat với AI</span>
+                        <h3>Hỏi về số liệu, cảnh báo hoặc việc nên làm tiếp theo</h3>
+                        </div>
+                    </div>
+                    <span id="reports-ai-chat-status" class="reports-ai-chat-status">Đang chờ dữ liệu</span>
+                </div>
+
+                <div id="reports-ai-thread" class="reports-ai-thread" aria-live="polite"></div>
+
+                <div id="reports-ai-suggestions" class="reports-ai-suggestions"></div>
+
+                <form id="reports-ai-form" class="reports-ai-form">
+                    <label class="reports-ai-input-label" for="reports-ai-input">
+                        <span>Nhập câu hỏi</span>
+                        <textarea
+                            id="reports-ai-input"
+                            rows="3"
+                            placeholder="Ví dụ: tháng này nên cắt khoản nào trước?"
+                            aria-label="Nhập câu hỏi cho AI báo cáo"
+                        ></textarea>
+                    </label>
+                    <div class="reports-ai-form-actions">
+                        <button id="reports-ai-clear" type="button" class="reports-ai-clear-btn">Xoá chat</button>
+                        <button id="reports-ai-send" type="submit" class="reports-ai-send-btn">Gửi câu hỏi</button>
+                    </div>
+                </form>
+            </aside>
+        </section>
+
+        <section class="reports-bottom-grid">
+            <article class="reports-panel">
+                <div class="reports-panel-head">
+                    <div>
+                        <h2 class="reports-panel-title">Hạng mục chi tiêu lớn</h2>
+                        <p class="reports-panel-copy">Nhóm chi tiêu nổi bật nhất trong tháng hiện tại</p>
+                    </div>
+                </div>
+
+                <div id="report-category-list" class="reports-category-list"></div>
+            </article>
+
+            <article class="reports-panel">
+                <div class="reports-panel-head">
+                    <div>
+                        <h2 class="reports-panel-title">Trạng thái 6 Hũ</h2>
+                        <p class="reports-panel-copy">Theo dõi tiến độ dùng hạn mức của từng hũ</p>
+                    </div>
+                </div>
+
+                <div id="report-jar-status-grid" class="reports-status-grid"></div>
+            </article>
+        </section>
+    </main>
+
+    <div id="site-footer"></div>
+    <script type="module" src="/src/js/layout.js"></script>
+    <script type="module" src="/src/js/reports-page.js"></script>
+</body>
+</html>

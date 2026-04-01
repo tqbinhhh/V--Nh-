@@ -1,0 +1,29 @@
+{
+  "name": "vi-nho-finance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.100.1",
+    "@tailwindcss/forms": "^0.5.7"
+  },
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./src/css/tailwind.css -o ./src/css/main.css",
+    "watch:css": "npx tailwindcss -i ./src/css/tailwind.css -o ./src/css/main.css --watch",
+    "dev": "concurrently \"npm run watch:css\" \"vite\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/line-clamp": "^0.1.0",
+    "@tailwindcss/typography": "^0.5.16",
+    "concurrently": "^9.2.1",
+    "tailwindcss": "^3.4.17",
+    "vite": "^8.0.3"
+  }
+}

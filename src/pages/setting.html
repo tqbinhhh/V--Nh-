@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cài đặt - Vi Nho Finance</title>
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/pages/setting.css" />
+    <script type="module" src="/src/js/auth-route-guard.js"></script>
+</head>
+<body data-page="settings" class="min-h-screen bg-background text-text-primary">
+    <div id="site-header"></div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <section class="card">
+            <h1 class="text-3xl font-black">Cài đặt tài khoản</h1>
+            <p class="mt-2 text-slate-600">Quản lý hồ sơ, hạn mức và bảo mật.</p>
+        </section>
+        <div class="grid lg:grid-cols-2 gap-6">
+            <form class="card space-y-4">
+                <h2 class="text-xl font-bold">Hồ sơ &amp; hạn mức</h2>
+                <label class="block"><span class="text-sm font-semibold">Họ tên</span><input class="input-field mt-2" /></label>
+                <label class="block"><span class="text-sm font-semibold">Số điện thoại</span><input class="input-field mt-2" /></label>
+                <label class="block"><span class="text-sm font-semibold">Hạn mức chi tiêu tháng</span><input type="number" class="input-field mt-2" /></label>
+                <label class="block"><span class="text-sm font-semibold">Hạn mức chi tiêu ngày</span><input type="number" class="input-field mt-2" /></label>
+                <button type="button" class="btn-submit">Lưu cài đặt</button>
+            </form>
+            <form class="card space-y-4">
+                <h2 class="text-xl font-bold">Đổi mật khẩu</h2>
+                <label class="block"><span class="text-sm font-semibold">Mật khẩu hiện tại</span><input type="password" class="input-field mt-2" /></label>
+                <label class="block"><span class="text-sm font-semibold">Mật khẩu mới</span><input type="password" class="input-field mt-2" /></label>
+                <label class="block"><span class="text-sm font-semibold">Xác nhận mật khẩu mới</span><input type="password" class="input-field mt-2" /></label>
+                <button type="button" class="btn-submit">Cập nhật mật khẩu</button>
+            </form>
+        </div>
+    </main>
+
+    <div id="site-footer"></div>
+    <script type="module" src="/src/js/layout.js"></script>
+</body>
+</html>

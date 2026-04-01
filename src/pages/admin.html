@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Vi Nho Finance</title>
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <script type="module" src="/src/js/auth-route-guard.js"></script>
+</head>
+<body data-page="admin" class="min-h-screen bg-slate-50 text-slate-900">
+    <aside
+        id="guest-access-banner"
+        class="app-guest-banner"
+        hidden
+        role="status"
+        aria-live="polite"
+        data-default-message="Đăng nhập bằng tài khoản admin để xem số liệu quản trị."
+    >
+        <div class="app-guest-banner-copy">
+            <span class="app-guest-banner-eyebrow">Xem trước</span>
+            <strong class="app-guest-banner-title">Cần đăng nhập admin để sử dụng trang này</strong>
+            <p data-guest-access-copy class="app-guest-banner-text">Đăng nhập bằng tài khoản admin để xem số liệu quản trị.</p>
+        </div>
+        <a
+            data-guest-access-action
+            class="app-guest-banner-btn"
+            href="/src/pages/login-register.html?next=%2Fsrc%2Fpages%2Fadmin.html"
+        >
+            Đăng nhập ngay
+        </a>
+    </aside>
+    <aside class="fixed left-0 top-0 h-screen w-72 bg-slate-950 text-white hidden lg:flex flex-col z-40">
+        <div class="p-6 flex items-center gap-3 border-b border-white/10">
+            <img src="/src/images/brand-logo.png" alt="Vi Nho Finance" class="w-10 h-10 rounded-xl object-cover" />
+            <div>
+                <div class="font-bold text-lg">Admin Dashboard</div>
+                <div class="text-xs text-slate-400">Supabase realtime</div>
+            </div>
+        </div>
+        <nav class="flex-1 p-3 space-y-1">
+            <a href="#overview" class="block rounded-xl px-4 py-3 text-slate-300 hover:bg-white/5 hover:text-white">Tổng quan</a>
+            <a href="#users" class="block rounded-xl px-4 py-3 text-slate-300 hover:bg-white/5 hover:text-white">Người dùng</a>
+            <a href="#transactions" class="block rounded-xl px-4 py-3 text-slate-300 hover:bg-white/5 hover:text-white">Giao dịch</a>
+        </nav>
+        <div class="p-6 border-t border-white/10">
+            <a href="/src/pages/homepage.html" class="block rounded-xl bg-white/10 px-4 py-3 text-center">Về trang chính</a>
+        </div>
+    </aside>
+
+    <main class="lg:ml-72 min-h-screen p-6 lg:p-10 space-y-6">
+        <div id="admin-denied" class="card" style="display:none;">Bạn không có quyền truy cập admin.</div>
+        <header class="card" id="overview">
+            <p class="text-sm uppercase tracking-[0.2em] text-emerald-600">Realtime admin</p>
+            <h1 class="text-3xl font-black mt-2">Quản trị hệ thống</h1>
+            <p class="text-slate-600 mt-2">Theo dõi người dùng, giao dịch và số dư hệ thống.</p>
+        </header>
+        <section class="grid md:grid-cols-3 gap-5">
+            <div class="card"><div class="text-slate-500 text-sm">Người dùng</div><div id="admin-total-users" class="mt-2 text-3xl font-black">0</div></div>
+            <div class="card"><div class="text-slate-500 text-sm">Giao dịch</div><div id="admin-total-transactions" class="mt-2 text-3xl font-black">0</div></div>
+            <div class="card"><div class="text-slate-500 text-sm">Số dư hệ thống</div><div id="admin-total-balance" class="mt-2 text-3xl font-black">0₫</div></div>
+        </section>
+    </main>
+
+    <script type="module" src="/src/js/admin-page.js"></script>
+</body>
+</html>

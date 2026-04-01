@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ thống Jar - Vi Nho Finance</title>
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/pages/multi-jar.css" />
+    <script type="module" src="/src/js/auth-route-guard.js"></script>
+</head>
+<body data-page="jars" class="jar-page min-h-screen bg-background text-text-primary">
+    <div id="site-header"></div>
+
+    <main class="jar-page-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <section class="jar-summary-row">
+            <article class="jar-summary-card">
+                <span class="jar-summary-label">Tổng tài sản</span>
+                <strong id="jar-total-assets" class="jar-summary-value">0₫</strong>
+                <p id="jar-total-assets-copy" class="jar-summary-copy">
+                    Sẵn sàng để tối ưu hoá sự thịnh vượng của bạn.
+                </p>
+            </article>
+
+            <article class="jar-summary-card is-accent">
+                <div class="jar-summary-head">
+                    <div>
+                        <span class="jar-summary-label">Quỹ chờ phân bổ</span>
+                        <strong id="jar-pending-total" class="jar-summary-value">0₫</strong>
+                    </div>
+                    <span class="jar-summary-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M7 7h10M7 12h6m-6 5h8M6.5 4h11A1.5 1.5 0 0 1 19 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 18.5v-13A1.5 1.5 0 0 1 6.5 4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                </div>
+                <p id="jar-pending-status" class="jar-summary-copy">0 khoản đang chờ phân bổ.</p>
+            </article>
+        </section>
+
+        <section id="jar-limit-card" class="jar-limit-card">
+            <div class="jar-limit-head">
+                <div class="jar-limit-head-copy">
+                    <span class="jar-limit-kicker">Hạn mức riêng từng hũ</span>
+                    <h2 class="jar-limit-title">Đặt mức chi theo nhịp riêng của từng hũ</h2>
+                    <p class="jar-limit-copy">
+                        Chọn một hũ để xem hạn mức hiện tại, chi tiêu 30 ngày gần đây và gợi ý cá nhân hoá dựa trên chính lịch sử của hũ đó.
+                    </p>
+                </div>
+
+                <label class="jar-limit-select-label" for="jar-limit-jar-select">
+                    <span>Chọn hũ</span>
+                    <select id="jar-limit-jar-select" aria-label="Chọn hũ để đặt hạn mức riêng"></select>
+                </label>
+            </div>
+
+            <div class="jar-limit-grid">
+                <div class="jar-limit-insight">
+                    <div class="jar-limit-stats">
+                        <div class="jar-limit-stat">
+                            <span>Hạn mức hiện tại</span>
+                            <strong id="jar-limit-current">0₫</strong>
+                        </div>
+                        <div class="jar-limit-stat">
+                            <span>Chi 30 ngày</span>
+                            <strong id="jar-limit-recent">0₫</strong>
+                        </div>
+                        <div class="jar-limit-stat">
+                            <span>Tỷ lệ sử dụng</span>
+                            <strong id="jar-limit-usage">0%</strong>
+                        </div>
+                        <div class="jar-limit-stat">
+                            <span>Gợi ý cá nhân</span>
+                            <strong id="jar-limit-suggested">0₫</strong>
+                        </div>
+                    </div>
+                    <p id="jar-limit-personal-copy" class="jar-limit-personal-copy">
+                        Mỗi hũ sẽ có gợi ý riêng dựa trên nhịp chi tiêu của chính nó.
+                    </p>
+                </div>
+
+                <form id="jar-limit-form" class="jar-limit-form">
+                    <label class="jar-limit-input-label">
+                        <span>Mức bạn muốn đặt</span>
+                        <input
+                            id="jar-limit-input"
+                            type="text"
+                            inputmode="numeric"
+                            placeholder="Ví dụ: 250000"
+                            aria-label="Nhập hạn mức riêng cho hũ đang chọn"
+                        />
+                    </label>
+
+                    <div class="jar-limit-actions">
+                        <button id="jar-limit-apply-suggestion" type="button" class="jar-chip-btn jar-limit-apply-btn">
+                            Áp dụng gợi ý
+                        </button>
+                        <button id="jar-limit-save-btn" type="submit" class="jar-primary-btn jar-limit-save-btn">
+                            Lưu hạn mức riêng
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="jar-limit-feedback" class="jar-inline-feedback" role="status" aria-live="polite"></div>
+        </section>
+
+        <section class="jar-source-card">
+            <div class="jar-source-head">
+                <div>
+                    <h1 class="jar-source-heading">Nguồn tiền phân bổ</h1>
+                    <p id="jar-source-meta" class="jar-source-meta">Chọn một khoản thu đang chờ rồi nhập tay vào từng hũ.</p>
+                </div>
+                <div class="jar-source-percent-box">
+                    <strong id="jar-source-percent" class="jar-source-percent">0%</strong>
+                    <span id="jar-source-percent-copy" class="jar-source-percent-copy">Nhập tay trước, gợi ý nhanh khi cần</span>
+                </div>
+            </div>
+
+            <div class="jar-source-main">
+                <div>
+                    <h2 id="jar-source-title" class="jar-source-title">Chưa có khoản thu nào đang chờ phân bổ.</h2>
+                    <p id="jar-source-note" class="jar-source-note">
+                        Khi bạn lưu Thu nhập với lựa chọn "chia hũ sau" từ dashboard, khoản tiền sẽ xuất hiện tại đây. Nếu muốn đi nhanh, bạn vẫn có thể dùng Tỷ lệ chuẩn hoặc Chia đều 6 hũ.
+                    </p>
+                </div>
+
+                <div class="jar-source-stats">
+                    <div class="jar-source-stat">
+                        <span>Đã phân bổ</span>
+                        <strong id="jar-assigned-total">0₫</strong>
+                    </div>
+                    <div class="jar-source-stat">
+                        <span>Còn lại</span>
+                        <strong id="jar-remaining-total">0₫</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="jar-source-progress-wrap">
+                <div class="jar-progress-track">
+                    <div id="jar-allocation-progress" class="jar-progress-bar"></div>
+                </div>
+                <div class="jar-progress-meta">
+                    <span id="jar-allocation-hint">Chọn một khoản thu để bắt đầu nhập tay.</span>
+                    <span id="jar-progress-badge">0₫ / 0₫</span>
+                </div>
+            </div>
+
+            <div class="jar-source-actions">
+                <button id="jar-apply-btn" type="button" class="jar-primary-btn" disabled>Xác nhận phân bổ</button>
+                <button id="jar-history-toggle" type="button" class="jar-outline-btn">Lịch sử chia</button>
+            </div>
+
+            <div class="jar-preset-row">
+                <button id="jar-preset-default" type="button" class="jar-chip-btn">Tỷ lệ chuẩn 55-10-10-10-10-5</button>
+                <button id="jar-preset-even" type="button" class="jar-chip-btn">Chia đều 6 hũ</button>
+            </div>
+
+            <div id="jar-save-feedback" class="jar-inline-feedback" role="status" aria-live="polite"></div>
+
+            <div id="jar-history-panel" class="jar-history-panel">
+                <div class="jar-history-head">
+                    <h3>Lịch sử chia</h3>
+                    <p>Theo dõi các khoản đang chờ và những lần phân bổ đã hoàn tất.</p>
+                </div>
+                <div class="jar-history-section">
+                    <div class="jar-history-section-head">
+                        <h4>Khoản chờ chia</h4>
+                        <p>Chọn một khoản khác để tiếp tục phân bổ mà không rời trang.</p>
+                    </div>
+                    <div id="jar-pending-empty" class="jar-history-empty">
+                        Hiện chưa có khoản thu nào ở trạng thái "chia hũ sau".
+                    </div>
+                    <div id="jar-pending-list" class="jar-history-list"></div>
+                </div>
+                <div class="jar-history-section">
+                    <div class="jar-history-section-head">
+                        <h4>Lịch sử chia gần đây</h4>
+                        <p>Các khoản đã được xác nhận phân bổ vào 6 hũ.</p>
+                    </div>
+                    <div id="jar-split-empty" class="jar-history-empty">
+                        Chưa có lần chia nào để hiển thị.
+                    </div>
+                    <div id="jar-split-list" class="jar-history-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="jar-bucket-section">
+            <div id="jar-allocation-grid" class="jar-bucket-grid"></div>
+        </section>
+
+        <section class="jar-insight-banner">
+            <div class="jar-insight-visual" aria-hidden="true">
+                <span class="jar-insight-coin coin-1"></span>
+                <span class="jar-insight-coin coin-2"></span>
+                <span class="jar-insight-coin coin-3"></span>
+                <span class="jar-insight-growth growth-1"></span>
+                <span class="jar-insight-growth growth-2"></span>
+                <span class="jar-insight-growth growth-3"></span>
+                <span class="jar-insight-growth growth-4"></span>
+            </div>
+
+            <div class="jar-insight-copy">
+                <span class="jar-insight-kicker">Cố vấn thông minh</span>
+                <h2 id="jar-insight-title" class="jar-insight-title">Nhập tay trước, gợi ý nhanh khi cần.</h2>
+                <p id="jar-insight-text" class="jar-insight-text">
+                    Chọn một khoản thu đang chờ rồi nhập số tiền vào từng hũ. Khi cần đi nhanh, bạn vẫn có thể dùng tỷ lệ chuẩn hoặc chia đều 6 hũ.
+                </p>
+                <button id="jar-insight-action" type="button" class="jar-insight-link">Dùng gợi ý nhanh</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="site-footer"></div>
+    <script type="module" src="/src/js/layout.js"></script>
+    <script type="module" src="/src/js/multi-jar-page.js"></script>
+</body>
+</html>

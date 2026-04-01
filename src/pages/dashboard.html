@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bảng điều khiển - Ví Nhỏ Tài Chính</title>
+    <link rel="stylesheet" href="/src/css/main.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/pages/dashboard.css" />
+    <script type="module" src="/src/js/auth-route-guard.js"></script>
+</head>
+<body data-page="dashboard" class="min-h-screen bg-background text-text-primary">
+    <div id="site-header"></div>
+
+    <main class="dashboard-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section class="dashboard-hero-card">
+            <p class="dashboard-hero-label">Ví tài chính cá nhân của bạn</p>
+            <h1 id="dashboard-greeting" class="dashboard-hero-title">Chào bạn</h1>
+            <p class="dashboard-hero-sub">Tình hình tài chính của bạn đang được đồng bộ theo thời gian thực.</p>
+            <div class="dashboard-overview-grid">
+                <div class="dashboard-overview-item">
+                    <span>Tổng số dư</span>
+                    <strong id="dashboard-balance">0₫</strong>
+                </div>
+                <div class="dashboard-overview-item">
+                    <span>Tổng thu</span>
+                    <strong id="dashboard-income">0₫</strong>
+                </div>
+                <div class="dashboard-overview-item">
+                    <span>Tổng chi</span>
+                    <strong id="dashboard-expense">0₫</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-main-grid">
+            <div class="dashboard-left">
+                <section class="dashboard-panel">
+                    <div class="dashboard-panel-head">
+                        <h2>6 hũ tài chính</h2>
+                        <p>3 hũ trên và 3 hũ dưới, hiển thị thông số chi tiết.</p>
+                    </div>
+                    <div class="dashboard-jars-grid">
+                        <article class="jar-card" data-jar="necessities">
+                            <div class="jar-card-top"><span class="jar-code">NEC</span><span class="jar-name">Thiết yếu</span></div>
+                            <div id="jar-necessities-balance" class="jar-balance">0₫</div>
+                            <div class="jar-metrics">
+                                <div><span>Đã chi</span><strong id="jar-necessities-expense">0₫</strong></div>
+                                <div><span>Hạn mức</span><strong id="jar-necessities-limit">0₫</strong></div>
+                            </div>
+                            <div class="jar-progress"><div id="jar-necessities-progress"></div></div>
+                        </article>
+
+                        <article class="jar-card" data-jar="education">
+                            <div class="jar-card-top"><span class="jar-code">EDU</span><span class="jar-name">Giáo dục</span></div>
+                            <div id="jar-education-balance" class="jar-balance">0₫</div>
+                            <div class="jar-metrics">
+                                <div><span>Đã chi</span><strong id="jar-education-expense">0₫</strong></div>
+                                <div><span>Hạn mức</span><strong id="jar-education-limit">0₫</strong></div>
+                            </div>
+                            <div class="jar-progress"><div id="jar-education-progress"></div></div>
+                        </article>
+
+                        <article class="jar-card" data-jar="savings">
+                            <div class="jar-card-top"><span class="jar-code">SAV</span><span class="jar-name">Tiết kiệm</span></div>
+                            <div id="jar-savings-balance" class="jar-balance">0₫</div>
+                            <div class="jar-metrics">
+                                <div><span>Đã chi</span><strong id="jar-savings-expense">0₫</strong></div>
+                                <div><span>Hạn mức</span><strong id="jar-savings-limit">0₫</strong></div>
+                            </div>
+                            <div class="jar-progress"><div id="jar-savings-progress"></div></div>
+                        </article>
+
+                        <article class="jar-card" data-jar="entertainment">
+                            <div class="jar-card-top"><span class="jar-code">PLAY</span><span class="jar-name">Hưởng thụ</span></div>
+                            <div id="jar-entertainment-balance" class="jar-balance">0₫</div>
+                            <div class="jar-metrics">
+                                <div><span>Đã chi</span><strong id="jar-entertainment-expense">0₫</strong></div>
+                                <div><span>Hạn mức</span><strong id="jar-entertainment-limit">0₫</strong></div>
+                            </div>
+                            <div class="jar-progress"><div id="jar-entertainment-progress"></div></div>
+                        </article>
+
+                        <article class="jar-card" data-jar="freedom">
+                            <div class="jar-card-top"><span class="jar-code">LTSS</span><span class="jar-name">Tự do tài chính</span></div>
+                            <div id="jar-freedom-balance" class="jar-balance">0₫</div>
+                            <div class="jar-metrics">
+                                <div><span>Đã chi</span><strong id="jar-freedom-expense">0₫</strong></div>
+                                <div><span>Hạn mức</span><strong id="jar-freedom-limit">0₫</strong></div>
+                            </div>
+                            <div class="jar-progress"><div id="jar-freedom-progress"></div></div>
+                        </article>
+
+                        <article class="jar-card" data-jar="giving">
+                            <div class="jar-card-top"><span class="jar-code">GIVE</span><span class="jar-name">Cho đi</span></div>
+                            <div id="jar-giving-balance" class="jar-balance">0₫</div>
+                            <div class="jar-metrics">
+                                <div><span>Đã chi</span><strong id="jar-giving-expense">0₫</strong></div>
+                                <div><span>Hạn mức</span><strong id="jar-giving-limit">0₫</strong></div>
+                            </div>
+                            <div class="jar-progress"><div id="jar-giving-progress"></div></div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="dashboard-panel">
+                    <div class="dashboard-panel-head row">
+                        <h2>Giao dịch gần đây</h2>
+                        <a href="/src/pages/reports_and_analytics.html">Xem tất cả</a>
+                    </div>
+                    <div id="dashboard-recent-list" class="dashboard-recent-list"></div>
+                    <div id="dashboard-recent-empty" class="dashboard-empty">Chưa có giao dịch nào để hiển thị.</div>
+                </section>
+            </div>
+
+            <aside class="dashboard-right">
+                <section class="dashboard-panel quick-actions-panel">
+                    <div class="dashboard-panel-head quick-actions-head">
+                        <h2>Quick Actions</h2>
+                        <span class="quick-actions-bolt" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M13.2 2.5L4.8 13.1c-.4.5 0 1.3.6 1.3h4.4l-1 7.1c-.1.8.9 1.2 1.4.6l8.4-10.6c.4-.5 0-1.3-.6-1.3h-4.4l1-7.1c.1-.8-.9-1.2-1.4-.6Z" fill="currentColor" />
+                            </svg>
+                        </span>
+                    </div>
+
+                    <div class="quick-toggle-grid">
+                        <button id="quick-income-btn" type="button" class="quick-toggle-btn is-income is-active">
+                            <span class="quick-toggle-icon" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="9.25" stroke="currentColor" stroke-width="1.5" />
+                                    <path d="M10 6v8M6 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                </svg>
+                            </span>
+                            <span class="quick-toggle-label">Thu nhập</span>
+                        </button>
+                        <button id="quick-expense-btn" type="button" class="quick-toggle-btn is-expense">
+                            <span class="quick-toggle-icon" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="9.25" stroke="currentColor" stroke-width="1.5" />
+                                    <path d="M6 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                </svg>
+                            </span>
+                            <span class="quick-toggle-label">Chi tiêu</span>
+                        </button>
+                        <button id="quick-asset-btn" type="button" class="quick-toggle-btn is-asset">
+                            <span class="quick-toggle-icon" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <rect x="3.2" y="5.2" width="13.6" height="9.6" rx="2" stroke="currentColor" stroke-width="1.5" />
+                                    <circle cx="10" cy="10" r="1.6" fill="currentColor" />
+                                </svg>
+                            </span>
+                            <span class="quick-toggle-label">Tài sản</span>
+                        </button>
+                        <button id="quick-reset-btn" type="button" class="quick-toggle-btn is-reset">
+                            <span class="quick-toggle-icon" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M15.5 6.5A6 6 0 1 0 16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                    <path d="M13.8 3.8h2.8v2.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <span class="quick-toggle-label">Reset</span>
+                        </button>
+                    </div>
+
+                    <div class="quick-actions-list">
+                        <button id="quick-receipt-btn" type="button" class="quick-row-btn">
+                            <span class="quick-row-left">
+                                <span class="quick-row-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 20 20" fill="none">
+                                        <path d="M5.5 3.5h9v13l-2-1-2 1-2-1-2 1v-13Z" stroke="currentColor" stroke-width="1.5" />
+                                        <path d="M7.5 7h5M7.5 10h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                    </svg>
+                                </span>
+                                <span>Quét hóa đơn</span>
+                            </span>
+                            <span class="quick-row-chevron">›</span>
+                        </button>
+
+                        <button id="quick-smart-btn" type="button" class="quick-row-btn">
+                            <span class="quick-row-left">
+                                <span class="quick-row-icon blue" aria-hidden="true">
+                                    <svg viewBox="0 0 20 20" fill="none">
+                                        <circle cx="10" cy="10" r="4.8" stroke="currentColor" stroke-width="1.5" />
+                                        <path d="M10 2.9v2.2M10 14.9v2.2M2.9 10h2.2M14.9 10h2.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                    </svg>
+                                </span>
+                                <span>Smart Add AI</span>
+                            </span>
+                            <span class="quick-row-chevron">›</span>
+                        </button>
+                    </div>
+
+                    <div id="quick-action-feedback" class="quick-action-feedback" role="status" aria-live="polite"></div>
+                    <input id="quick-receipt-input" type="file" accept="image/*" class="quick-receipt-input" />
+
+                    <div class="quick-insight-wrap">
+                        <div id="quick-recurring-card" class="quick-recurring-card"></div>
+                        <div class="quick-insight-card">
+                            <div class="quick-insight-title">
+                                <span class="quick-insight-icon" aria-hidden="true">✦</span>
+                                <span>Tiết kiệm nhiều hơn?</span>
+                            </div>
+                            <p>AI gợi ý bạn có thể giảm 10% chi tiêu ăn uống để đầu tư thêm.</p>
+                            <button id="quick-insight-btn" type="button" class="quick-insight-btn">PHÂN TÍCH NGAY</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="dashboard-panel">
+                    <div class="dashboard-panel-head">
+                        <h2>Hạn mức tổng</h2>
+                    </div>
+                    <div class="limit-row"><span>Hạn mức tháng</span><strong id="dashboard-monthly-limit">0₫</strong></div>
+                    <div class="limit-row"><span>Hạn mức ngày</span><strong id="dashboard-daily-limit">0₫</strong></div>
+                </section>
+            </aside>
+        </section>
+    </main>
+
+    <div id="manual-transaction-modal" class="manual-modal" aria-hidden="true">
+        <div class="manual-modal-backdrop" data-close-manual-modal></div>
+        <section class="manual-modal-card" role="dialog" aria-modal="true" aria-labelledby="manual-modal-title">
+            <div class="manual-modal-head">
+                <div class="manual-modal-heading">
+                    <span id="manual-modal-badge" class="manual-modal-badge">Chi tiêu</span>
+                    <div>
+                        <h3 id="manual-modal-title">Nhập giao dịch thủ công</h3>
+                        <p id="manual-modal-subtitle" class="manual-modal-subtitle">
+                            AI sẽ hỗ trợ gợi ý hũ, cảnh báo và tối ưu quyết định trước khi bạn lưu giao dịch.
+                        </p>
+                    </div>
+                </div>
+                <button id="manual-modal-close" type="button" class="manual-modal-close" aria-label="Đóng">✕</button>
+            </div>
+
+            <form id="manual-transaction-form" class="manual-form">
+                <div id="manual-primary-grid" class="manual-grid">
+                    <label class="manual-label">
+                        <span>Số tiền</span>
+                        <input id="manual-amount-input" type="text" inputmode="decimal" placeholder="Ví dụ: 350000, 1.2tr, 250k" required />
+                    </label>
+                    <label id="manual-jar-field" class="manual-label">
+                        <span>Hũ</span>
+                        <select id="manual-jar-select">
+                            <option value="necessities">NEC - Thiết yếu</option>
+                            <option value="education">EDU - Giáo dục</option>
+                            <option value="savings">SAV - Tiết kiệm</option>
+                            <option value="entertainment">PLAY - Hưởng thụ</option>
+                            <option value="freedom">LTSS - Tự do tài chính</option>
+                            <option value="giving">GIVE - Cho đi</option>
+                        </select>
+                    </label>
+                </div>
+
+                <label class="manual-label">
+                    <span>Ghi chú</span>
+                    <input id="manual-note-input" type="text" placeholder="Ví dụ: Mua sách lập trình Python" />
+                </label>
+
+                <section id="manual-income-mode-panel" class="manual-income-mode-panel" aria-labelledby="manual-income-mode-title">
+                    <div class="manual-allocation-head">
+                        <h4 id="manual-income-mode-title">Cách xử lý khoản thu này</h4>
+                        <p id="manual-income-mode-note">Chọn cách bạn muốn đưa khoản thu vào hệ thống hũ.</p>
+                    </div>
+                    <div class="manual-income-mode-grid">
+                        <label class="manual-choice-card">
+                            <input type="radio" name="manual-income-mode" value="split_now" checked />
+                            <span class="manual-choice-body">
+                                <strong>Chia ngay theo gợi ý</strong>
+                                <span>Tách 6 hũ ngay trong lúc lưu để số dư cập nhật tức thì.</span>
+                            </span>
+                        </label>
+                        <label class="manual-choice-card">
+                            <input type="radio" name="manual-income-mode" value="single_jar" />
+                            <span class="manual-choice-body">
+                                <strong>Ghi vào một hũ</strong>
+                                <span>Lưu toàn bộ khoản thu vào một hũ bạn tự chọn ngay bây giờ.</span>
+                            </span>
+                        </label>
+                        <label class="manual-choice-card">
+                            <input type="radio" name="manual-income-mode" value="split_later" />
+                            <span class="manual-choice-body">
+                                <strong>Chia hũ sau</strong>
+                                <span>Lưu tạm khoản thu và phân bổ sau ở trang Hệ thống hũ.</span>
+                            </span>
+                        </label>
+                    </div>
+                </section>
+
+                <div id="manual-ai-suggestion" class="manual-ai-suggestion"></div>
+                <div id="manual-ai-warnings" class="manual-ai-warnings"></div>
+
+                <section id="manual-income-allocation" class="manual-income-allocation">
+                    <div class="manual-allocation-head">
+                        <h4>Gợi ý phân bổ AI</h4>
+                        <p id="manual-allocation-advice"></p>
+                    </div>
+                    <div id="manual-allocation-table" class="manual-allocation-table"></div>
+                </section>
+
+                <div id="manual-periodic-hint" class="manual-periodic-hint"></div>
+
+                <div class="manual-actions">
+                    <button id="manual-cancel-btn" type="button" class="manual-cancel-btn">Huỷ</button>
+                    <button id="manual-submit-btn" type="submit" class="manual-submit-btn">Lưu giao dịch</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div id="smart-add-modal" class="manual-modal smart-modal" aria-hidden="true" data-mode="smart">
+        <div class="manual-modal-backdrop" data-close-smart-add-modal></div>
+        <section class="manual-modal-card" role="dialog" aria-modal="true" aria-labelledby="smart-add-modal-title">
+            <div class="manual-modal-head">
+                <div class="manual-modal-heading">
+                    <span class="manual-modal-badge">Smart Add AI</span>
+                    <div>
+                        <h3 id="smart-add-modal-title">Nhập mô tả giao dịch bằng AI</h3>
+                        <p id="smart-add-modal-subtitle" class="manual-modal-subtitle">
+                            Nhập câu tự nhiên như "ăn trưa 65k", "nhận lương 12 triệu" hoặc "mua vé xem phim 90k". AI sẽ tự xác định loại giao dịch, số tiền và hũ phù hợp. Với chi tiêu, bạn sẽ xem trước khoản trừ trước khi xác nhận; với thu nhập, hệ thống sẽ lưu ngay sau khi phân tích.
+                        </p>
+                    </div>
+                </div>
+                <button id="smart-add-modal-close" type="button" class="manual-modal-close" aria-label="Đóng">✕</button>
+            </div>
+
+            <form id="smart-add-form" class="manual-form">
+                <label class="manual-label">
+                    <span>Mô tả giao dịch</span>
+                    <textarea
+                        id="smart-add-input"
+                        class="smart-add-textarea"
+                        placeholder='Ví dụ: "ăn trưa 65k", "nhận lương tháng 12 triệu", "mua sách 250k"'
+                        rows="5"
+                        required
+                    ></textarea>
+                </label>
+
+                <p class="smart-add-hint">
+                    Bạn càng nhập tự nhiên, AI càng đoán đúng hơn. Nhấn Ctrl/Cmd + Enter để phân tích nhanh. Với chi tiêu, AI sẽ hiện preview trước khi bạn xác nhận.
+                </p>
+
+                <section id="smart-add-preview" class="smart-add-preview" aria-hidden="true">
+                    <div class="smart-add-preview-head">
+                        <h4>Xem trước khoản chi</h4>
+                        <p>Kiểm tra số tiền, hũ bị trừ và số dư còn lại trước khi xác nhận.</p>
+                    </div>
+
+                    <div class="smart-add-preview-grid">
+                        <div class="smart-add-preview-item">
+                            <span>Loại</span>
+                            <strong id="smart-add-preview-type">Chi tiêu</strong>
+                        </div>
+                        <div class="smart-add-preview-item">
+                            <span>Số tiền</span>
+                            <strong id="smart-add-preview-amount">0₫</strong>
+                        </div>
+                        <div class="smart-add-preview-item">
+                            <span>Hũ sẽ trừ</span>
+                            <strong id="smart-add-preview-jar">NEC - Thiết yếu</strong>
+                        </div>
+                        <div class="smart-add-preview-item">
+                            <span>Số dư còn lại</span>
+                            <strong id="smart-add-preview-balance">0₫</strong>
+                        </div>
+                    </div>
+
+                    <p id="smart-add-preview-note" class="smart-add-preview-note"></p>
+                    <div id="smart-add-preview-warnings" class="smart-add-preview-warnings"></div>
+                </section>
+
+                <div id="smart-add-feedback" class="smart-add-feedback" role="status" aria-live="polite"></div>
+
+                <div class="manual-actions">
+                    <button id="smart-add-cancel-btn" type="button" class="manual-cancel-btn">Huỷ</button>
+                    <button id="smart-add-submit-btn" type="submit" class="manual-submit-btn">Phân tích & xem trước</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div id="site-footer"></div>
+    <script type="module" src="/src/js/layout.js"></script>
+    <script type="module" src="/src/js/dashboard-page.js"></script>
+</body>
+</html>

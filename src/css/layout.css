@@ -1,0 +1,449 @@
+.app-nav {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    border-bottom: 1px solid rgba(12, 74, 52, 0.12);
+    background:
+        linear-gradient(120deg, rgba(246, 255, 250, 0.96), rgba(255, 255, 255, 0.92)),
+        radial-gradient(circle at top left, rgba(16, 185, 129, 0.12), transparent 40%);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+.app-nav-shell {
+    min-height: 4.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+}
+
+.app-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+.app-brand-mark {
+    position: relative;
+    width: 3.35rem;
+    height: 3.35rem;
+    padding: 0.18rem;
+    border-radius: 1.05rem;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    background:
+        linear-gradient(145deg, rgba(16, 185, 129, 0.16), rgba(6, 95, 70, 0.05)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+    box-shadow: 0 12px 24px rgba(5, 150, 105, 0.14);
+}
+
+.app-brand-mark::before {
+    content: "";
+    position: absolute;
+    inset: 0.18rem;
+    border-radius: 0.9rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+    pointer-events: none;
+}
+
+.app-brand-logo {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.84rem;
+    transform: translateZ(0);
+}
+
+.app-brand-title {
+    font-size: 1.02rem;
+    line-height: 1.2rem;
+    font-weight: 800;
+    color: #064e3b;
+    letter-spacing: -0.01em;
+}
+
+.app-brand-copy {
+    font-size: 0.74rem;
+    line-height: 0.95rem;
+    color: #0f766e;
+}
+
+.app-nav-links {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(15, 118, 110, 0.1);
+}
+
+.app-nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #3b4b60;
+    transition: all 180ms ease;
+}
+
+.app-nav-link:hover {
+    color: #0f766e;
+    background: rgba(15, 118, 110, 0.08);
+}
+
+.app-nav-link.is-active {
+    color: #ffffff;
+    background: linear-gradient(135deg, #0f766e, #059669);
+    box-shadow: 0 10px 18px rgba(5, 150, 105, 0.2);
+}
+
+.app-nav-actions {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.app-user-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.app-user-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.35rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 118, 110, 0.14);
+    background: rgba(255, 255, 255, 0.8);
+    color: #0f5b4e;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.app-login-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 118, 110, 0.18);
+    color: #0f5b4e;
+    font-size: 0.84rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.82);
+}
+
+.app-logout-btn {
+    cursor: pointer;
+}
+
+.app-auth-nav {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    border-bottom: 1px solid rgba(12, 74, 52, 0.1);
+    background:
+        linear-gradient(120deg, rgba(248, 252, 250, 0.96), rgba(255, 255, 255, 0.92)),
+        radial-gradient(circle at top left, rgba(16, 185, 129, 0.1), transparent 40%);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.app-auth-nav-shell {
+    min-height: 4.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.app-auth-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.app-auth-home-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 118, 110, 0.18);
+    color: #0f5b4e;
+    font-size: 0.84rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.86);
+}
+
+.app-guest-banner {
+    position: fixed;
+    top: 5.6rem;
+    right: 1rem;
+    z-index: 70;
+    width: min(22rem, calc(100vw - 2rem));
+    padding: 0.95rem 1rem;
+    border-radius: 1.1rem;
+    border: 1px solid rgba(15, 118, 110, 0.15);
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 253, 244, 0.96)),
+        radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 45%);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(14px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.85rem;
+    color: #0f172a;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.app-guest-banner.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.app-guest-banner-copy {
+    min-width: 0;
+}
+
+.app-guest-banner-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 0.35rem;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.12);
+    color: #0f766e;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.app-guest-banner-title {
+    display: block;
+    font-size: 0.94rem;
+    line-height: 1.3rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.app-guest-banner-text {
+    margin-top: 0.3rem;
+    font-size: 0.82rem;
+    line-height: 1.45rem;
+    color: #475569;
+}
+
+.app-guest-banner-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #0f766e, #16a34a);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 800;
+    box-shadow: 0 12px 24px rgba(15, 118, 110, 0.24);
+}
+
+.app-footer {
+    margin-top: 4rem;
+    border-top: 1px solid rgba(167, 243, 208, 0.25);
+    background:
+        radial-gradient(circle at top left, rgba(110, 231, 183, 0.24), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(45, 212, 191, 0.2), transparent 30%),
+        linear-gradient(180deg, #0b3b2a 0%, #0e5a3f 45%, #137a54 100%);
+}
+
+.app-footer-shell {
+    padding-top: 2.8rem;
+    padding-bottom: 1.4rem;
+}
+
+.app-footer-grid {
+    display: grid;
+    gap: 1.8rem;
+}
+
+.app-footer-brand {
+    max-width: 24rem;
+}
+
+.app-footer-title {
+    margin-bottom: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #f0fdf4;
+}
+
+.app-footer-text {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: rgba(220, 252, 231, 0.8);
+}
+
+.app-footer-link {
+    display: block;
+    margin-bottom: 0.55rem;
+    font-size: 0.9rem;
+    color: rgba(236, 253, 245, 0.86);
+    transition: color 180ms ease, transform 180ms ease;
+}
+
+.app-footer-link:hover {
+    color: #bbf7d0;
+    transform: translateX(2px);
+}
+
+.app-footer-badges {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.app-footer-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(220, 252, 231, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ecfdf5;
+    font-size: 0.78rem;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(3, 18, 13, 0.16);
+}
+
+.app-footer-bottom {
+    margin-top: 1.6rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid rgba(220, 252, 231, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    font-size: 0.82rem;
+    color: rgba(220, 252, 231, 0.76);
+}
+
+.app-auth-footer {
+    margin-top: 3rem;
+    border-top: 1px solid rgba(12, 74, 52, 0.08);
+    background: linear-gradient(180deg, rgba(248, 252, 250, 0.86), rgba(241, 247, 243, 0.96));
+}
+
+.app-auth-footer-shell {
+    min-height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.app-auth-footer-copy {
+    margin: 0;
+    color: #5f7368;
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
+.app-auth-footer-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 118, 110, 0.16);
+    background: rgba(255, 255, 255, 0.8);
+    color: #0f5b4e;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+@media (max-width: 640px) {
+    .app-guest-banner {
+        top: auto;
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        width: auto;
+    }
+}
+
+@media (min-width: 768px) {
+    .app-nav-links {
+        display: flex;
+    }
+
+    .app-nav-actions {
+        display: flex;
+    }
+}
+
+@media (min-width: 900px) {
+    .app-footer-grid {
+        grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 0.85fr));
+    }
+
+    .app-footer-bottom {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 767px) {
+    .app-nav-shell {
+        min-height: 4.2rem;
+    }
+
+    .app-auth-nav-shell,
+    .app-auth-footer-shell {
+        min-height: 4.2rem;
+    }
+
+    .app-brand-title {
+        font-size: 0.94rem;
+    }
+
+    .app-brand-copy {
+        font-size: 0.7rem;
+    }
+
+    .app-auth-nav-actions,
+    .app-auth-footer-shell {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .app-auth-home-link,
+    .app-auth-footer-link {
+        width: 100%;
+        justify-content: center;
+    }
+}

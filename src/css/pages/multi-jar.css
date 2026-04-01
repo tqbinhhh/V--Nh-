@@ -1,0 +1,1205 @@
+.jar-page {
+    background:
+        radial-gradient(circle at top left, rgba(111, 214, 183, 0.14), transparent 24%),
+        linear-gradient(180deg, #f7f8f7 0%, #f2f4f3 100%);
+    color: #1f2937;
+}
+
+.jar-page-shell {
+    display: grid;
+    gap: 1.6rem;
+}
+
+.jar-summary-row {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.jar-summary-card,
+.jar-source-card,
+.jar-bucket-card,
+.jar-insight-banner {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(229, 231, 235, 0.92);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.05);
+}
+
+.jar-summary-card {
+    padding: 1.45rem 1.5rem;
+}
+
+.jar-summary-card.is-accent {
+    background: linear-gradient(135deg, #eaf7f2 0%, #dff5ed 100%);
+    border-color: rgba(191, 235, 217, 0.95);
+}
+
+.jar-summary-card.is-daily-limit {
+    background: linear-gradient(135deg, #eef4ff 0%, #edf7ff 100%);
+    border-color: rgba(191, 219, 254, 0.95);
+}
+
+.jar-summary-card.is-daily-limit .jar-summary-copy {
+    min-height: 2.9rem;
+}
+
+.jar-summary-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.jar-summary-label {
+    display: block;
+    color: #6b7280;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.jar-summary-value {
+    display: block;
+    margin-top: 0.42rem;
+    color: #1f2937;
+    font-size: clamp(1.9rem, 3vw, 2.5rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+}
+
+.jar-summary-copy {
+    margin-top: 0.45rem;
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+
+.jar-summary-icon {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #4fc08b 0%, #6ad1a6 100%);
+    color: #ffffff;
+    box-shadow: 0 12px 24px rgba(79, 192, 139, 0.22);
+}
+
+.jar-summary-icon svg {
+    width: 1.3rem;
+    height: 1.3rem;
+}
+
+.jar-daily-icon {
+    background: linear-gradient(135deg, #4f7df0 0%, #6da4ff 100%);
+    box-shadow: 0 12px 24px rgba(79, 125, 240, 0.22);
+}
+
+.jar-daily-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(7rem, auto));
+    gap: 0.8rem;
+    margin-top: 0.9rem;
+}
+
+.jar-daily-stats .jar-source-stat {
+    text-align: right;
+}
+
+.jar-summary-card.is-daily-limit .jar-source-stat strong.is-negative {
+    color: #b91c1c;
+}
+
+.jar-daily-progress-wrap {
+    margin-top: 1rem;
+}
+
+.jar-daily-limit-form {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.jar-daily-input-label {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.jar-daily-input-label span {
+    color: #6b7280;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.jar-daily-input-label input {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 0.95rem;
+    border: 1px solid #dbe7f3;
+    background: #ffffff;
+    padding: 0.75rem 0.9rem;
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 800;
+    outline: none;
+}
+
+.jar-daily-input-label input::placeholder {
+    color: #94a3b8;
+}
+
+.jar-daily-input-label input:hover {
+    border-color: #bfd3eb;
+}
+
+.jar-daily-save-btn {
+    min-width: 9rem;
+    min-height: 3rem;
+    border-radius: 0.95rem;
+    white-space: nowrap;
+}
+
+.jar-limit-card {
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(191, 219, 254, 0.9);
+    background:
+        linear-gradient(135deg, rgba(239, 246, 255, 0.98) 0%, rgba(255, 255, 255, 0.98) 52%, rgba(240, 253, 244, 0.96) 100%);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.05);
+}
+
+.jar-limit-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.jar-limit-head-copy {
+    min-width: 0;
+}
+
+.jar-limit-kicker {
+    display: block;
+    color: #2563eb;
+    font-size: 0.73rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.jar-limit-title {
+    margin-top: 0.35rem;
+    color: #111827;
+    font-size: clamp(1.2rem, 2.1vw, 1.7rem);
+    font-weight: 900;
+    letter-spacing: -0.035em;
+}
+
+.jar-limit-copy {
+    margin-top: 0.4rem;
+    max-width: 72ch;
+    color: #6b7280;
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+.jar-limit-select-label {
+    display: grid;
+    gap: 0.4rem;
+    min-width: 14rem;
+    flex-shrink: 0;
+}
+
+.jar-limit-select-label span,
+.jar-limit-input-label span {
+    color: #6b7280;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.jar-limit-select-label select {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 0.95rem;
+    border: 1px solid #dbe7f3;
+    background: #ffffff;
+    padding: 0.75rem 0.95rem;
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 800;
+    outline: none;
+}
+
+.jar-limit-select-label select:hover {
+    border-color: #bfd3eb;
+}
+
+.jar-limit-grid {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+    gap: 1rem;
+}
+
+.jar-limit-insight {
+    border-radius: 1.25rem;
+    border: 1px solid #dce9f7;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 1rem;
+}
+
+.jar-limit-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.jar-limit-stat {
+    border-radius: 1rem;
+    border: 1px solid #e8eef8;
+    background: #f8fbff;
+    padding: 0.8rem 0.9rem;
+}
+
+.jar-limit-stat span {
+    display: block;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.jar-limit-stat strong {
+    display: block;
+    margin-top: 0.28rem;
+    color: #111827;
+    font-size: 1.15rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.jar-limit-personal-copy {
+    margin-top: 0.95rem;
+    color: #475569;
+    font-size: 0.92rem;
+    line-height: 1.7;
+}
+
+.jar-limit-form {
+    display: grid;
+    gap: 0.9rem;
+    align-content: start;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(191, 219, 254, 0.85);
+    background: linear-gradient(180deg, rgba(239, 246, 255, 0.92) 0%, rgba(240, 253, 244, 0.82) 100%);
+    padding: 1rem;
+}
+
+.jar-limit-input-label {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.jar-limit-input-label input {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 0.95rem;
+    border: 1px solid #dbe7f3;
+    background: #ffffff;
+    padding: 0.75rem 0.9rem;
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 800;
+    outline: none;
+}
+
+.jar-limit-input-label input::placeholder {
+    color: #94a3b8;
+}
+
+.jar-limit-input-label input:hover {
+    border-color: #bfd3eb;
+}
+
+.jar-limit-actions {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.jar-limit-apply-btn,
+.jar-limit-save-btn {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 0.95rem;
+}
+
+.jar-source-card {
+    padding: 1.5rem;
+}
+
+.jar-source-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.jar-source-heading {
+    color: #111827;
+    font-size: clamp(1.4rem, 2.3vw, 1.85rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.jar-source-meta {
+    margin-top: 0.25rem;
+    color: #6b7280;
+    font-size: 0.88rem;
+}
+
+.jar-source-percent-box {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.jar-source-percent {
+    display: block;
+    color: #2c8a67;
+    font-size: clamp(1.8rem, 3vw, 2.35rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+}
+
+.jar-source-percent-copy {
+    display: block;
+    margin-top: 0.1rem;
+    color: #6b7280;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.jar-source-main {
+    margin-top: 1.1rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.jar-source-title {
+    color: #1f2937;
+    font-size: clamp(1.15rem, 2vw, 1.45rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.jar-source-note {
+    margin-top: 0.3rem;
+    max-width: 68ch;
+    color: #6b7280;
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+.jar-source-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(7rem, auto));
+    gap: 0.8rem;
+    flex-shrink: 0;
+}
+
+.jar-source-stat {
+    border-radius: 1rem;
+    background: #f8faf9;
+    border: 1px solid #eef2f0;
+    padding: 0.8rem 0.9rem;
+    text-align: right;
+}
+
+.jar-source-stat span {
+    display: block;
+    color: #6b7280;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.jar-source-stat strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: #111827;
+    font-size: 1.12rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.jar-source-progress-wrap {
+    margin-top: 1.15rem;
+}
+
+.jar-progress-track {
+    height: 0.72rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e8eeeb;
+}
+
+.jar-progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #3f9b78 0%, #52c692 100%);
+    transition: width 0.28s ease;
+}
+
+.jar-progress-bar.is-over {
+    background: linear-gradient(90deg, #ef4444 0%, #fb7185 100%);
+}
+
+.jar-progress-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-top: 0.55rem;
+    color: #6b7280;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.jar-source-actions {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.jar-primary-btn,
+.jar-outline-btn,
+.jar-chip-btn,
+.jar-insight-link,
+.jar-step-btn {
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease, filter 0.18s ease;
+}
+
+.jar-primary-btn,
+.jar-outline-btn,
+.jar-chip-btn,
+.jar-insight-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-weight: 800;
+}
+
+.jar-primary-btn {
+    min-width: 12rem;
+    min-height: 3rem;
+    padding: 0 1.2rem;
+    border: 0;
+    background: linear-gradient(135deg, #2e8b67 0%, #46b685 100%);
+    color: #ffffff;
+    box-shadow: 0 14px 26px rgba(70, 182, 133, 0.24);
+}
+
+.jar-primary-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+}
+
+.jar-outline-btn {
+    min-height: 3rem;
+    padding: 0 1.2rem;
+    border: 1px solid #dde7e2;
+    background: #ffffff;
+    color: #4b5563;
+}
+
+.jar-outline-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: #cbd9d2;
+    background: #f9fbfa;
+}
+
+.jar-primary-btn:disabled,
+.jar-outline-btn:disabled,
+.jar-chip-btn:disabled,
+.jar-step-btn:disabled,
+.jar-insight-link:disabled {
+    cursor: not-allowed;
+    opacity: 0.58;
+    transform: none;
+    box-shadow: none;
+}
+
+.jar-preset-row {
+    margin-top: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+}
+
+.jar-chip-btn {
+    min-height: 2.55rem;
+    padding: 0 1rem;
+    border: 1px solid #e5ece8;
+    background: #f7faf8;
+    color: #5f6b66;
+    font-size: 0.84rem;
+}
+
+.jar-chip-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: #d2e0d9;
+    background: #ffffff;
+}
+
+.jar-inline-feedback {
+    display: none;
+    margin-top: 0.95rem;
+    border-radius: 1rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.87rem;
+    font-weight: 700;
+    line-height: 1.6;
+}
+
+.jar-inline-feedback.is-visible {
+    display: block;
+}
+
+.jar-inline-feedback.is-success {
+    border: 1px solid #b8ebd1;
+    background: #edfdf4;
+    color: #047857;
+}
+
+.jar-inline-feedback.is-error {
+    border: 1px solid #fecdd3;
+    background: #fff1f2;
+    color: #be123c;
+}
+
+.jar-inline-feedback.is-info {
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.jar-history-panel {
+    display: none;
+    margin-top: 1rem;
+    border-top: 1px solid #edf2ef;
+    padding-top: 1rem;
+}
+
+.jar-history-panel.is-open {
+    display: block;
+}
+
+.jar-history-head h3 {
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.jar-history-head p {
+    margin-top: 0.22rem;
+    color: #6b7280;
+    font-size: 0.84rem;
+}
+
+.jar-history-section {
+    margin-top: 1rem;
+}
+
+.jar-history-section-head h4 {
+    color: #111827;
+    font-size: 0.92rem;
+    font-weight: 900;
+}
+
+.jar-history-section-head p {
+    margin-top: 0.18rem;
+    color: #6b7280;
+    font-size: 0.8rem;
+}
+
+.jar-history-empty {
+    display: none;
+    margin-top: 0.85rem;
+    border-radius: 1rem;
+    border: 1px dashed #d7e2dc;
+    background: #f8faf9;
+    padding: 1rem;
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+.jar-history-empty.is-visible {
+    display: block;
+}
+
+.jar-history-list {
+    display: none;
+    margin-top: 0.85rem;
+    gap: 0.75rem;
+}
+
+.jar-history-list.is-visible {
+    display: grid;
+}
+
+.jar-history-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.9rem;
+    border-radius: 1rem;
+    border: 1px solid #edf2ef;
+    background: #ffffff;
+    padding: 0.95rem 1rem;
+}
+
+.jar-history-item.is-completed {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: flex-start;
+    row-gap: 0.6rem;
+}
+
+.jar-history-item.is-active {
+    border-color: #b8e3cf;
+    box-shadow: 0 0 0 3px rgba(82, 198, 146, 0.12);
+}
+
+.jar-history-item:hover {
+    border-color: #d7e4dd;
+}
+
+.jar-history-note {
+    color: #111827;
+    font-size: 0.96rem;
+    font-weight: 800;
+}
+
+.jar-history-completed-copy {
+    min-width: 0;
+}
+
+.jar-history-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.35rem;
+    margin-bottom: 0.35rem;
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    background: #eaf7f1;
+    color: #2e8b67;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.jar-history-meta {
+    margin-top: 0.28rem;
+    color: #6b7280;
+    font-size: 0.8rem;
+}
+
+.jar-history-breakdown {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 0.45rem;
+    padding-top: 0.45rem;
+    border-top: 1px dashed #e3eae6;
+}
+
+.jar-history-breakdown-title {
+    color: #6b7280;
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.jar-history-breakdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    border-radius: 0.85rem;
+    border: 1px solid #edf2ef;
+    background: #f8faf9;
+    padding: 0.55rem 0.7rem;
+}
+
+.jar-history-breakdown-label {
+    color: #1f2937;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.jar-history-breakdown-value {
+    color: #2e8b67;
+    font-size: 0.82rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.jar-history-breakdown-note {
+    color: #6b7280;
+    font-size: 0.75rem;
+    line-height: 1.55;
+}
+
+.jar-history-amount {
+    color: #2e8b67;
+    font-size: 1rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.jar-history-btn {
+    min-height: 2.6rem;
+    padding: 0 0.95rem;
+    border-radius: 999px;
+    border: 1px solid #dce7e1;
+    background: #f7faf8;
+    color: #46525e;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.jar-history-btn:hover {
+    background: #ffffff;
+    border-color: #cad7d0;
+}
+
+.jar-bucket-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.jar-bucket-card {
+    padding: 1rem;
+}
+
+.jar-bucket-card.is-selected {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14), 0 18px 44px rgba(15, 23, 42, 0.06);
+}
+
+.jar-bucket-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.7rem;
+}
+
+.jar-bucket-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.8rem;
+}
+
+.jar-bucket-icon svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.jar-bucket-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.4rem;
+    padding: 0 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.jar-bucket-title {
+    margin-top: 0.95rem;
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.jar-bucket-copy {
+    margin-top: 0.25rem;
+    color: #6b7280;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    min-height: 2.45rem;
+}
+
+.jar-bucket-input-wrap {
+    position: relative;
+    margin-top: 0.95rem;
+}
+
+.jar-amount-input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 0 1rem 0 0;
+    color: #111827;
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    outline: none;
+}
+
+.jar-amount-input::placeholder {
+    color: #9ca3af;
+}
+
+.jar-currency {
+    position: absolute;
+    right: 0;
+    bottom: 0.35rem;
+    color: #9ca3af;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.jar-bucket-balance {
+    margin-top: 0.35rem;
+    color: #6b7280;
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.jar-bucket-balance strong {
+    color: #111827;
+    font-weight: 800;
+}
+
+.jar-stepper {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 1rem;
+}
+
+.jar-step-btn {
+    height: 3rem;
+    border: 1px solid #eef2ef;
+    border-radius: 0.85rem;
+    background: #f8faf9;
+    color: #4b5563;
+    font-size: 1.15rem;
+    font-weight: 900;
+}
+
+.jar-step-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: #dce4df;
+    background: #ffffff;
+}
+
+.jar-step-btn:focus-visible,
+.jar-amount-input:focus-visible,
+.jar-primary-btn:focus-visible,
+.jar-outline-btn:focus-visible,
+.jar-chip-btn:focus-visible,
+.jar-history-btn:focus-visible,
+.jar-insight-link:focus-visible,
+.jar-limit-select-label select:focus-visible,
+.jar-limit-input-label input:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(82, 198, 146, 0.14);
+}
+
+.jar-bucket-card[data-jar='necessities'] .jar-bucket-icon {
+    background: rgba(79, 192, 139, 0.12);
+    color: #3d9f74;
+}
+
+.jar-bucket-card[data-jar='necessities'] .jar-bucket-badge {
+    background: rgba(79, 192, 139, 0.12);
+    color: #3d9f74;
+}
+
+.jar-bucket-card[data-jar='education'] .jar-bucket-icon {
+    background: rgba(84, 120, 255, 0.12);
+    color: #4368e3;
+}
+
+.jar-bucket-card[data-jar='education'] .jar-bucket-badge {
+    background: rgba(84, 120, 255, 0.12);
+    color: #4368e3;
+}
+
+.jar-bucket-card[data-jar='savings'] .jar-bucket-icon {
+    background: rgba(201, 126, 45, 0.12);
+    color: #b66c1e;
+}
+
+.jar-bucket-card[data-jar='savings'] .jar-bucket-badge {
+    background: rgba(201, 126, 45, 0.12);
+    color: #b66c1e;
+}
+
+.jar-bucket-card[data-jar='entertainment'] .jar-bucket-icon {
+    background: rgba(163, 110, 255, 0.12);
+    color: #8f5ee1;
+}
+
+.jar-bucket-card[data-jar='entertainment'] .jar-bucket-badge {
+    background: rgba(163, 110, 255, 0.12);
+    color: #8f5ee1;
+}
+
+.jar-bucket-card[data-jar='freedom'] .jar-bucket-icon {
+    background: rgba(63, 134, 255, 0.12);
+    color: #356fd4;
+}
+
+.jar-bucket-card[data-jar='freedom'] .jar-bucket-badge {
+    background: rgba(63, 134, 255, 0.12);
+    color: #356fd4;
+}
+
+.jar-bucket-card[data-jar='giving'] .jar-bucket-icon {
+    background: rgba(232, 92, 92, 0.12);
+    color: #c64f4f;
+}
+
+.jar-bucket-card[data-jar='giving'] .jar-bucket-badge {
+    background: rgba(232, 92, 92, 0.12);
+    color: #c64f4f;
+}
+
+.jar-insight-banner {
+    display: grid;
+    gap: 1.2rem;
+    grid-template-columns: 240px minmax(0, 1fr);
+    align-items: center;
+    padding: 1rem;
+}
+
+.jar-insight-visual {
+    position: relative;
+    min-height: 8.8rem;
+    overflow: hidden;
+    border-radius: 1rem;
+    background:
+        linear-gradient(135deg, #102a14 0%, #274a20 46%, #3c692f 100%);
+}
+
+.jar-insight-visual::before {
+    content: '';
+    position: absolute;
+    inset: auto auto 0 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(180, 255, 166, 0.18), rgba(180, 255, 166, 0.9));
+}
+
+.jar-insight-growth {
+    position: absolute;
+    bottom: 0;
+    width: 18px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(180deg, #bca36a 0%, #8f7444 100%);
+    box-shadow: 0 0 0 1px rgba(255, 225, 159, 0.14), 0 10px 18px rgba(0, 0, 0, 0.16);
+}
+
+.growth-1 { left: 22px; height: 42px; }
+.growth-2 { left: 58px; height: 58px; }
+.growth-3 { left: 96px; height: 80px; }
+.growth-4 { left: 136px; height: 108px; }
+
+.jar-insight-coin {
+    position: absolute;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 30%, #fff5be 0%, #caa85c 72%);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+}
+
+.coin-1 {
+    width: 18px;
+    height: 18px;
+    left: 116px;
+    top: 24px;
+}
+
+.coin-2 {
+    width: 20px;
+    height: 20px;
+    left: 148px;
+    top: 12px;
+}
+
+.coin-3 {
+    width: 14px;
+    height: 14px;
+    left: 176px;
+    top: 30px;
+}
+
+.jar-insight-copy {
+    min-width: 0;
+}
+
+.jar-insight-kicker {
+    display: block;
+    color: #2c8a67;
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.jar-insight-title {
+    margin-top: 0.35rem;
+    color: #111827;
+    font-size: clamp(1.15rem, 2vw, 1.45rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.jar-insight-text {
+    margin-top: 0.45rem;
+    color: #6b7280;
+    font-size: 0.92rem;
+    line-height: 1.7;
+}
+
+.jar-insight-link {
+    margin-top: 0.85rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2c8a67;
+    font-size: 0.92rem;
+}
+
+.jar-insight-link:hover:not(:disabled) {
+    transform: translateX(2px);
+}
+
+@media (max-width: 1024px) {
+    .jar-summary-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .jar-bucket-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .jar-insight-banner {
+        grid-template-columns: 1fr;
+    }
+
+    .jar-insight-visual {
+        min-height: 10rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .jar-summary-row {
+        grid-template-columns: 1fr;
+    }
+
+    .jar-summary-row,
+    .jar-bucket-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .jar-source-head,
+    .jar-source-main,
+    .jar-source-actions,
+    .jar-progress-meta,
+    .jar-history-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .jar-history-item {
+        grid-template-columns: 1fr;
+    }
+
+    .jar-source-stats {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .jar-source-percent-box,
+    .jar-source-stat {
+        text-align: left;
+    }
+
+    .jar-source-actions,
+    .jar-preset-row {
+        width: 100%;
+    }
+
+    .jar-daily-stats,
+    .jar-daily-limit-form {
+        grid-template-columns: 1fr;
+    }
+
+    .jar-daily-save-btn {
+        width: 100%;
+    }
+
+    .jar-primary-btn,
+    .jar-outline-btn,
+    .jar-chip-btn,
+    .jar-history-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .jar-summary-card,
+    .jar-source-card,
+    .jar-bucket-card,
+    .jar-insight-banner {
+        border-radius: 1.2rem;
+    }
+
+    .jar-source-card {
+        padding: 1.15rem;
+    }
+
+    .jar-amount-input {
+        font-size: 1.72rem;
+    }
+
+    .jar-limit-head,
+    .jar-limit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .jar-limit-head {
+        flex-direction: column;
+    }
+
+    .jar-limit-select-label {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .jar-limit-stats {
+        grid-template-columns: 1fr;
+    }
+}
