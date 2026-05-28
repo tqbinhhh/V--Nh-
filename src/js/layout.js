@@ -9,6 +9,7 @@ import {
     signOutAndRedirect,
     syncGuestAuthNotice
 } from './auth-guard.js';
+import brandLogo from '../images/brand-logo.png';
 
 const PAGE_BANNER_LABELS = new Map([
     ['dashboard', 'Bảng điều khiển'],
@@ -69,7 +70,7 @@ function renderBrand(subtitle) {
         <a href="${HOME_HREF}" class="app-brand">
             <div class="app-brand-mark">
                 <img
-                    src="/src/images/brand-logo.png"
+                    src="${brandLogo}"
                     alt="Vi Nho Finance"
                     class="app-brand-logo"
                     loading="eager"
