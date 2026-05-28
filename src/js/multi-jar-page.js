@@ -127,7 +127,8 @@ const state = {
     pendingIncomes: [],
     selectedPendingId: null,
     allocationDraft: {},
-    selectedLimitJarKey: 'necessities',
+    selectedLimitTarget: 'overall',
+    selectedLimitPeriod: 'monthly',
     jarLimitDrafts: {},
     jarLimitInsights: {},
     jarLimitFeedbackTimer: null,
@@ -180,7 +181,7 @@ function formatCurrencyInputField(input) {
 
 function getMissingUserProfileColumns(error) {
     const text = `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`.toLowerCase();
-    const candidates = ['email', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
+    const candidates = ['email', 'full_name', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
     return candidates.filter((column) => (
         text.includes(`'${column}'`) ||
         text.includes(`"${column}"`) ||
@@ -188,11 +189,13 @@ function getMissingUserProfileColumns(error) {
     ));
 }
 
-async function upsertUserProfileWithFallback(payloads) {
+async function upsertUserProfileWithFallback(initialPayload) {
+    let payload = Array.isArray(initialPayload) ? { ...initialPayload[0] } : { ...initialPayload };
     let lastError = null;
 
-    for (const payload of payloads) {
+    for (let attempt = 0; attempt < 5; attempt++) {
         const { data, error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' }).select('*').maybeSingle();
+        
         if (!error) {
             return data || null;
         }
@@ -202,6 +205,10 @@ async function upsertUserProfileWithFallback(payloads) {
         if (!missingColumns.length) {
             break;
         }
+
+        missingColumns.forEach(col => {
+            delete payload[col];
+        });
     }
 
     throw lastError || new Error('Không thể lưu hồ sơ người dùng.');
@@ -258,22 +265,32 @@ function getJarTransactionRows(rows, jarKey, startDate, endDate) {
     });
 }
 
-function buildJarLimitInsight(rows, profile, jarKey) {
+function buildJarLimitInsight(rows, profile, jarKey, period = 'monthly') {
     const jarMeta = JARS.find((jar) => jar.key === jarKey);
-    const currentLimit = Number(profile?.spending_limits?.[jarKey] || 0);
+    const limitKey = period === 'daily' ? `${jarKey}_daily` : jarKey;
+    const currentLimit = Number(profile?.spending_limits?.[limitKey] || 0);
     const monthlyFallback = Number(profile?.monthly_spending_limit || 0);
     const now = new Date();
-    const window30Start = addDays(startOfDay(now), -30);
-    const window60Start = addDays(startOfDay(now), -60);
+    
+    let windowStart, priorWindowStart;
+    if (period === 'daily') {
+        windowStart = startOfDay(now);
+        priorWindowStart = addDays(windowStart, -1);
+    } else {
+        windowStart = addDays(startOfDay(now), -30);
+        priorWindowStart = addDays(windowStart, -30);
+    }
 
-    const recentRows = getJarTransactionRows(rows, jarKey, window30Start, addDays(now, 1));
-    const priorRows = getJarTransactionRows(rows, jarKey, window60Start, window30Start);
-    const allRecentExpenses = rows.filter((tx) => tx.type === 'expense' && new Date(tx.created_at) >= window30Start);
+    const recentRows = getJarTransactionRows(rows, jarKey, windowStart, addDays(now, 1));
+    const priorRows = getJarTransactionRows(rows, jarKey, priorWindowStart, windowStart);
+    const allRecentExpenses = rows.filter((tx) => tx.type === 'expense' && new Date(tx.created_at) >= windowStart);
     const recentTotal = recentRows.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
     const priorTotal = priorRows.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
     const recentCount = recentRows.length;
     const currentJarShare = jarMeta ? jarMeta.defaultRatio / 100 : 0;
-    const baselineFromMonthly = monthlyFallback > 0 ? monthlyFallback * currentJarShare : 0;
+    const baselineFromFallback = period === 'daily' 
+        ? (monthlyFallback > 0 ? (monthlyFallback / 30) * currentJarShare : 0)
+        : (monthlyFallback > 0 ? monthlyFallback * currentJarShare : 0);
     const baselineFromSpending = allRecentExpenses.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) * currentJarShare;
     const utilization = currentLimit > 0 ? (recentTotal / currentLimit) * 100 : null;
 
@@ -283,19 +300,23 @@ function buildJarLimitInsight(rows, profile, jarKey) {
         if (priorTotal > 0 && recentTotal > priorTotal) {
             recommended = Math.max(recommended, recentTotal + (recentTotal - priorTotal) * 0.35);
         }
-    } else if (baselineFromMonthly > 0) {
-        recommended = baselineFromMonthly;
+    } else if (baselineFromFallback > 0) {
+        recommended = baselineFromFallback;
     } else if (baselineFromSpending > 0) {
         recommended = baselineFromSpending;
     }
 
     const trend = priorTotal > 0 ? ((recentTotal - priorTotal) / priorTotal) * 100 : null;
-    const suggestedLimit = roundToStep(recommended || currentLimit || 50_000);
+    const step = period === 'daily' ? 10_000 : 50_000;
+    const defaultRec = period === 'daily' ? 50_000 : 500_000;
+    const suggestedLimit = roundToStep(recommended || currentLimit || defaultRec, step);
     const recentAverage = recentCount > 0 ? recentTotal / recentCount : 0;
 
     const reasons = [];
+    const periodName = period === 'daily' ? 'hôm nay' : '30 ngày gần đây';
+    
     if (recentCount > 0) {
-        reasons.push(`30 ngày gần đây bạn đã chi ${formatCurrency(recentTotal)} cho hũ này qua ${recentCount} giao dịch.`);
+        reasons.push(`Trong ${periodName} bạn đã chi ${formatCurrency(recentTotal)} cho hũ này qua ${recentCount} giao dịch.`);
         reasons.push(`Trung bình mỗi khoản khoảng ${formatCurrency(recentAverage)}.`);
         if (utilization !== null) {
             if (utilization >= 100) {
@@ -313,13 +334,14 @@ function buildJarLimitInsight(rows, profile, jarKey) {
     if (trend !== null) {
         const trendAbs = Math.abs(Math.round(trend));
         if (trendAbs > 0) {
-            reasons.push(`So với 30 ngày trước, nhịp chi tiêu ${trend > 0 ? 'tăng' : 'giảm'} ${trendAbs}%.`);
+            const priorName = period === 'daily' ? 'hôm qua' : '30 ngày trước';
+            reasons.push(`So với ${priorName}, nhịp chi tiêu ${trend > 0 ? 'tăng' : 'giảm'} ${trendAbs}%.`);
         }
     }
 
     const persona = JAR_LIMIT_PERSONALITY_COPY[jarKey];
     if (persona) reasons.push(persona);
-    reasons.push(`Gợi ý cá nhân hoá cho hũ ${getJarCode(jarKey)} là ${formatCurrency(suggestedLimit)}.`);
+    reasons.push(`Gợi ý cá nhân hoá cho hạn mức ${period === 'daily' ? 'ngày' : 'tháng'} của hũ ${getJarCode(jarKey)} là ${formatCurrency(suggestedLimit)}.`);
 
     return {
         jarKey,
@@ -338,10 +360,57 @@ function buildJarLimitInsight(rows, profile, jarKey) {
 }
 
 function buildJarLimitInsights(rows, profile) {
-    return JARS.reduce((map, jar) => {
-        map[jar.key] = buildJarLimitInsight(rows, profile, jar.key);
-        return map;
-    }, {});
+    const map = {};
+    JARS.forEach((jar) => {
+        map[jar.key] = buildJarLimitInsight(rows, profile, jar.key, 'monthly');
+        map[`${jar.key}_daily`] = buildJarLimitInsight(rows, profile, jar.key, 'daily');
+    });
+
+    const now = new Date();
+    const todayStart = startOfDay(now);
+    const window30Start = addDays(todayStart, -30);
+
+    const todayExpense = rows
+        .filter((tx) => tx.type === 'expense' && new Date(tx.created_at) >= todayStart)
+        .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+    const dailyLimit = Number(profile?.daily_spending_limit || 0);
+    
+    map['overall_daily'] = {
+        jarKey: 'overall_daily',
+        jarCode: 'NGÀY',
+        label: 'Toàn ví - Hạn mức ngày',
+        currentLimit: dailyLimit,
+        recentTotal: todayExpense,
+        recentCount: 0,
+        priorTotal: 0,
+        trend: null,
+        recentAverage: 0,
+        utilization: dailyLimit > 0 ? (todayExpense / dailyLimit) * 100 : null,
+        suggestedLimit: roundToStep(dailyLimit > 0 ? dailyLimit : 50_000, 10_000),
+        note: 'Đây là giới hạn chi tiêu tối đa mỗi ngày. Nếu vượt qua, hệ thống sẽ nhắc nhở.'
+    };
+
+    const recentExpense30 = rows
+        .filter((tx) => tx.type === 'expense' && new Date(tx.created_at) >= window30Start)
+        .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+    const monthlyLimit = Number(profile?.monthly_spending_limit || 0);
+
+    map['overall_monthly'] = {
+        jarKey: 'overall_monthly',
+        jarCode: 'THÁNG',
+        label: 'Toàn ví - Hạn mức tháng',
+        currentLimit: monthlyLimit,
+        recentTotal: recentExpense30,
+        recentCount: 0,
+        priorTotal: 0,
+        trend: null,
+        recentAverage: 0,
+        utilization: monthlyLimit > 0 ? (recentExpense30 / monthlyLimit) * 100 : null,
+        suggestedLimit: roundToStep(monthlyLimit > 0 ? monthlyLimit : 500_000, 50_000),
+        note: 'Kiểm soát tổng chi tiêu toàn ví trong tháng để tránh lạm chi.'
+    };
+
+    return map;
 }
 
 function normalizeToken(value = '') {
@@ -358,11 +427,13 @@ function normalizeJar(value) {
 }
 
 function getJarLabel(jarKey) {
-    return JARS.find((jar) => jar.key === jarKey)?.label || 'Không xác định';
+    const baseKey = String(jarKey || '').replace('_daily', '');
+    return JARS.find((jar) => jar.key === baseKey)?.label || 'Không xác định';
 }
 
 function getJarCode(jarKey) {
-    return JARS.find((jar) => jar.key === jarKey)?.code || 'N/A';
+    const baseKey = String(jarKey || '').replace('_daily', '');
+    return JARS.find((jar) => jar.key === baseKey)?.code || 'N/A';
 }
 
 function parseCurrencyInput(value) {
@@ -473,8 +544,8 @@ function buildJarStats(rows) {
         if (!jarKey || !stats[jarKey]) return;
 
         const amount = Number(tx.amount || 0);
-        if (tx.type === 'income') stats[jarKey].income += amount;
-        if (tx.type === 'expense') stats[jarKey].expense += amount;
+        if (tx.type === 'income' || tx.type === 'transfer_in') stats[jarKey].income += amount;
+        if (tx.type === 'expense' || tx.type === 'transfer_out') stats[jarKey].expense += amount;
     });
 
     JARS.forEach(({ key }) => {
@@ -505,8 +576,21 @@ function getAllocationMetaLabel(tx) {
 
 function buildSplitHistoryEntries(rows = []) {
     const grouped = new Map();
+    const transfers = [];
 
     rows.forEach((tx) => {
+        if (tx.type === 'transfer_out') {
+            transfers.push({
+                isTransfer: true,
+                id: tx.id,
+                created_at: tx.created_at,
+                note: tx.note,
+                amount: Number(tx.amount || 0),
+                fromJarKey: tx.jar,
+            });
+            return;
+        }
+
         if (!isAllocationTransaction(tx)) return;
 
         const createdAtKey = String(tx.created_at || '');
@@ -541,7 +625,7 @@ function buildSplitHistoryEntries(rows = []) {
         }
     });
 
-    return Array.from(grouped.values())
+    const allocationsList = Array.from(grouped.values())
         .map((entry) => {
             const allocations = entry.allocations
                 .sort((a, b) => JARS.findIndex((jar) => jar.key === a.jarKey) - JARS.findIndex((jar) => jar.key === b.jarKey))
@@ -554,8 +638,9 @@ function buildSplitHistoryEntries(rows = []) {
                 ...entry,
                 allocations
             };
-        })
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        });
+
+    return [...allocationsList, ...transfers].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
 
 function setFeedback(message = '', tone = 'info') {
@@ -674,177 +759,7 @@ function renderSummaryCards(viewModel) {
     }
 }
 
-function getJarLimitSelectedKey(viewModel) {
-    if (state.selectedLimitJarKey && JARS.some((jar) => jar.key === state.selectedLimitJarKey)) {
-        return state.selectedLimitJarKey;
-    }
 
-    const bestJar = Object.entries(viewModel.jarLimitInsights || {})
-        .sort((a, b) => Number(b[1]?.recentTotal || 0) - Number(a[1]?.recentTotal || 0))[0]?.[0];
-
-    return bestJar || JARS[0].key;
-}
-
-function renderJarLimitSelectOptions(selectEl, selectedKey) {
-    if (!selectEl) return;
-
-    if (selectEl.options.length !== JARS.length) {
-        selectEl.innerHTML = JARS.map((jar) => {
-            return `<option value="${jar.key}">${jar.code} · ${jar.label}</option>`;
-        }).join('');
-    }
-
-    if (selectedKey && selectEl.value !== selectedKey) {
-        selectEl.value = selectedKey;
-    }
-}
-
-function renderJarLimitPanel(viewModel) {
-    const selectEl = document.getElementById('jar-limit-jar-select');
-    const currentEl = document.getElementById('jar-limit-current');
-    const recentEl = document.getElementById('jar-limit-recent');
-    const usageEl = document.getElementById('jar-limit-usage');
-    const suggestedEl = document.getElementById('jar-limit-suggested');
-    const personalCopyEl = document.getElementById('jar-limit-personal-copy');
-    const inputEl = document.getElementById('jar-limit-input');
-    const applyBtn = document.getElementById('jar-limit-apply-suggestion');
-    const saveBtn = document.getElementById('jar-limit-save-btn');
-    const feedbackEl = document.getElementById('jar-limit-feedback');
-    const selectedKey = getJarLimitSelectedKey(viewModel);
-    const insight = viewModel.jarLimitInsights?.[selectedKey] || buildJarLimitInsight(state.transactions, state.profile, selectedKey);
-
-    state.jarLimitInsights = viewModel.jarLimitInsights || {};
-    state.selectedLimitJarKey = selectedKey;
-
-    renderJarLimitSelectOptions(selectEl, selectedKey);
-
-    if (currentEl) currentEl.textContent = formatCurrency(insight.currentLimit);
-    if (recentEl) recentEl.textContent = formatCurrency(insight.recentTotal);
-    if (usageEl) {
-        usageEl.textContent = insight.utilization !== null ? formatRatio(insight.utilization) : 'Chưa có';
-    }
-    if (suggestedEl) suggestedEl.textContent = formatCurrency(insight.suggestedLimit);
-    if (personalCopyEl) {
-        personalCopyEl.textContent =
-            insight.note ||
-            'Mỗi hũ sẽ có gợi ý riêng dựa trên lịch sử chi tiêu của nó, để bạn đặt hạn mức gần hơn với thực tế.';
-    }
-
-    if (inputEl && inputEl !== document.activeElement) {
-        const draftValue = state.jarLimitDrafts[selectedKey];
-        if (draftValue !== undefined && draftValue !== null && draftValue !== '') {
-            inputEl.value = String(draftValue);
-        } else if (insight.currentLimit > 0) {
-            inputEl.value = formatInputCurrency(insight.currentLimit);
-        } else {
-            inputEl.value = formatInputCurrency(insight.suggestedLimit);
-        }
-    }
-
-    if (applyBtn) {
-        applyBtn.textContent = `Áp dụng gợi ý cho ${getJarCode(selectedKey)}`;
-        applyBtn.disabled = state.isSavingJarLimit;
-    }
-
-    if (saveBtn) {
-        saveBtn.disabled = state.isSavingJarLimit;
-    }
-
-    if (feedbackEl && !feedbackEl.classList.contains('is-visible')) {
-        feedbackEl.textContent = '';
-    }
-}
-
-function setDailyLimitFeedback(message = '', tone = 'info') {
-    const feedbackEl = document.getElementById('jar-daily-limit-feedback');
-    if (!feedbackEl) return;
-
-    if (state.dailyLimitFeedbackTimer) {
-        clearTimeout(state.dailyLimitFeedbackTimer);
-        state.dailyLimitFeedbackTimer = null;
-    }
-
-    if (!message) {
-        feedbackEl.textContent = '';
-        feedbackEl.className = 'jar-inline-feedback';
-        return;
-    }
-
-    feedbackEl.textContent = message;
-    feedbackEl.className = `jar-inline-feedback is-visible is-${tone}`;
-
-    if (tone !== 'info') {
-        state.dailyLimitFeedbackTimer = window.setTimeout(() => {
-            feedbackEl.textContent = '';
-            feedbackEl.className = 'jar-inline-feedback';
-            state.dailyLimitFeedbackTimer = null;
-        }, 5000);
-    }
-}
-
-function renderDailyLimitCard(viewModel) {
-    const limitValueEl = document.getElementById('jar-daily-limit-value');
-    const limitCopyEl = document.getElementById('jar-daily-limit-copy');
-    const spentEl = document.getElementById('jar-daily-spent');
-    const remainingEl = document.getElementById('jar-daily-remaining');
-    const progressEl = document.getElementById('jar-daily-progress');
-    const progressNoteEl = document.getElementById('jar-daily-progress-note');
-    const progressBadgeEl = document.getElementById('jar-daily-progress-badge');
-    const feedbackEl = document.getElementById('jar-daily-limit-feedback');
-    const inputEl = document.getElementById('jar-daily-limit-input');
-
-    const limit = Number(viewModel.dailyLimit || 0);
-    const spent = Number(viewModel.todayExpense || 0);
-    const remaining = Number(viewModel.dailyRemaining || 0);
-    const hasLimit = limit > 0;
-    const isOver = hasLimit && spent > limit;
-
-    if (limitValueEl) limitValueEl.textContent = formatCurrency(limit);
-    if (spentEl) spentEl.textContent = formatCurrency(spent);
-    if (remainingEl) {
-        remainingEl.textContent = hasLimit ? formatCurrency(remaining) : '0₫';
-        remainingEl.classList.toggle('is-negative', isOver);
-    }
-
-    if (limitCopyEl) {
-        if (!hasLimit) {
-            limitCopyEl.textContent = 'Nhập mức chi tiêu ngày bạn muốn kiểm soát, hệ thống sẽ nhắc khi chi vượt.';
-        } else if (isOver) {
-            limitCopyEl.textContent = `Hôm nay bạn đã vượt hạn mức ${formatCurrency(Math.abs(remaining))}. Giữ nhịp lại một chút nhé.`;
-        } else {
-            limitCopyEl.textContent = `Hôm nay đã chi ${formatCurrency(spent)} trên mức ${formatCurrency(limit)}.`;
-        }
-    }
-
-    if (progressEl) {
-        progressEl.style.width = `${hasLimit ? viewModel.dailyProgress : 0}%`;
-        progressEl.classList.toggle('is-over', isOver);
-    }
-
-    if (progressNoteEl) {
-        progressNoteEl.textContent = hasLimit
-            ? isOver
-                ? `Đã vượt ${formatCurrency(Math.abs(remaining))} so với hạn mức.`
-                : `Còn ${formatCurrency(remaining)} để chi hôm nay.`
-            : 'Chưa đặt hạn mức ngày.';
-    }
-
-    if (progressBadgeEl) {
-        progressBadgeEl.textContent = hasLimit ? `${formatCurrency(spent)} / ${formatCurrency(limit)}` : 'Chưa đặt hạn mức';
-    }
-
-    if (inputEl && inputEl !== document.activeElement) {
-        if (state.dailyLimitDraft !== null) {
-            inputEl.value = state.dailyLimitDraft;
-        } else {
-            inputEl.value = limit > 0 ? formatInputCurrency(limit) : '';
-        }
-    }
-
-    if (feedbackEl && !feedbackEl.classList.contains('is-visible')) {
-        feedbackEl.textContent = '';
-    }
-}
 
 function renderSourceCard(viewModel) {
     const sourceMetaEl = document.getElementById('jar-source-meta');
@@ -977,6 +892,19 @@ function renderHistoryPanel() {
     splitList.className = 'jar-history-list is-visible';
     splitList.innerHTML = splitHistoryEntries
         .map((entry) => {
+            if (entry.isTransfer) {
+                return `
+                    <article class="jar-history-item is-completed">
+                        <div class="jar-history-completed-copy">
+                            <div class="jar-history-badge" style="background:#fff3cd; color:#856404;">Chuyển quỹ</div>
+                            <div class="jar-history-note">Ngày ${formatDate(entry.created_at)} · Từ hũ ${getJarCode(entry.fromJarKey)}</div>
+                            <div class="jar-history-meta">${entry.note}</div>
+                        </div>
+                        <div class="jar-history-amount" style="color: #6b7280;">${formatCurrency(entry.amount)}</div>
+                    </article>
+                `;
+            }
+
             return `
                 <article class="jar-history-item is-completed">
                     <div class="jar-history-completed-copy">
@@ -985,19 +913,21 @@ function renderHistoryPanel() {
                         <div class="jar-history-meta">Tổng ${formatCurrency(entry.amount)} · ${entry.allocations.length} hũ được chia</div>
                     </div>
                     <div class="jar-history-amount">+${formatCurrency(entry.amount)}</div>
-                    <div class="jar-history-breakdown">
-                        <div class="jar-history-breakdown-title">Chi tiết phân bổ</div>
-                        ${entry.allocations
-                            .map((allocation) => {
-                                return `
-                                    <div class="jar-history-breakdown-item">
-                                        <span class="jar-history-breakdown-label">${getJarCode(allocation.jarKey)} · ${getJarLabel(allocation.jarKey)}</span>
-                                        <span class="jar-history-breakdown-value">${formatRatio(allocation.ratio)} · ${formatCurrency(allocation.amount)}</span>
-                                    </div>
-                                `;
-                            })
-                            .join('')}
-                    </div>
+                    <details class="jar-history-breakdown">
+                        <summary class="jar-history-breakdown-title">Chi tiết phân bổ</summary>
+                        <div class="jar-history-breakdown-content">
+                            ${entry.allocations
+                                .map((allocation) => {
+                                    return `
+                                        <div class="jar-history-breakdown-item">
+                                            <span class="jar-history-breakdown-label">${getJarCode(allocation.jarKey)} · ${getJarLabel(allocation.jarKey)}</span>
+                                            <span class="jar-history-breakdown-value">${formatRatio(allocation.ratio)} · ${formatCurrency(allocation.amount)}</span>
+                                        </div>
+                                    `;
+                                })
+                                .join('')}
+                        </div>
+                    </details>
                 </article>
             `;
         })
@@ -1009,45 +939,59 @@ function renderBucketGrid(viewModel) {
     if (!grid) return;
 
     const selectedAmount = Number(viewModel.selected?.amount || 0);
-    const selectedLimitJarKey = getJarLimitSelectedKey(viewModel);
     grid.innerHTML = JARS.map((jar) => {
         const draftAmount = viewModel.selected ? Number(state.allocationDraft[jar.key] || 0) : 0;
         const ratio = viewModel.selected && selectedAmount > 0 ? (draftAmount / selectedAmount) * 100 : jar.defaultRatio;
         const currentBalance = Number(viewModel.jarStats[jar.key]?.balance || 0);
         const disabledAttr = viewModel.selected ? '' : 'disabled';
-        const isLimitSelected = selectedLimitJarKey === jar.key;
+
+        const period = state.jarLimitPeriods?.[jar.key] || 'monthly';
+        const limitKey = period === 'daily' ? `${jar.key}_daily` : jar.key;
+        const limitValue = state.profile?.spending_limits?.[limitKey] || '';
 
         return `
-            <article class="jar-bucket-card ${isLimitSelected ? 'is-selected' : ''}" data-jar="${jar.key}">
+            <article class="jar-bucket-card" data-jar="${jar.key}">
                 <div class="jar-bucket-head">
                     <span class="jar-bucket-icon" aria-hidden="true">${jar.icon}</span>
                     <span class="jar-bucket-badge" data-jar-ratio="${jar.key}">${formatRatio(ratio)}</span>
                 </div>
 
-                <h3 class="jar-bucket-title">${jar.label}</h3>
-                <p class="jar-bucket-copy">${jar.shortCopy}</p>
-
-                <label class="jar-bucket-input-wrap">
-                    <input
-                        class="jar-amount-input"
-                        type="text"
-                        inputmode="numeric"
-                        value="${viewModel.selected && draftAmount > 0 ? formatInputCurrency(draftAmount) : ''}"
-                        placeholder="0"
-                        data-jar-input="${jar.key}"
-                        aria-label="So tien cho ${jar.label}"
-                        ${disabledAttr}
-                    />
-                    <span class="jar-currency">đ</span>
-                </label>
-
-                <div class="jar-bucket-balance">
-                    Số dư hiện tại: <strong>${formatCurrency(currentBalance)}</strong>
+                <div class="jar-bucket-info">
+                    <h3 class="jar-bucket-title">${jar.label}</h3>
+                    <p class="jar-bucket-copy">${jar.shortCopy}</p>
                 </div>
 
-                <div class="jar-stepper">
-                    <button type="button" class="jar-step-btn" data-jar-step="-10000" data-jar-step-jar="${jar.key}" aria-label="Giảm ${jar.label}" ${disabledAttr}>-</button>
-                    <button type="button" class="jar-step-btn" data-jar-step="10000" data-jar-step-jar="${jar.key}" aria-label="Tăng ${jar.label}" ${disabledAttr}>+</button>
+                <div class="jar-bucket-stats">
+                    <div class="jar-stat-item">
+                        <span class="jar-stat-label">Số dư hiện tại</span>
+                        <strong class="jar-stat-value">${formatCurrency(currentBalance)}</strong>
+                    </div>
+                    <div class="jar-stat-item">
+                        <select class="jar-stat-label jar-limit-period-select" data-jar="${jar.key}" aria-label="Kỳ hạn hạn mức" style="border: none; background: transparent; padding: 0; cursor: pointer; outline: none; appearance: auto;">
+                            <option value="monthly" ${period !== 'daily' ? 'selected' : ''}>Hạn mức tháng</option>
+                            <option value="daily" ${period === 'daily' ? 'selected' : ''}>Hạn mức ngày</option>
+                        </select>
+                        <div class="jar-limit-inline-wrapper">
+                            <input class="jar-limit-inline-input" type="text" inputmode="numeric" data-jar-limit-inline="${jar.key}" data-jar-limit-key="${limitKey}" value="${formatInputCurrency(limitValue)}" placeholder="Chưa đặt">
+                            <span class="jar-currency-small">₫</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="jar-bucket-action ${viewModel.selected ? 'is-active' : ''}">
+                    <div class="jar-bucket-action-header">
+                        <label>Phân bổ thu nhập</label>
+                    </div>
+                    <div class="jar-bucket-input-row">
+                        <button type="button" class="jar-step-btn" data-jar-step="-10000" data-jar-step-jar="${jar.key}" aria-label="Giảm" ${disabledAttr}>-</button>
+                        
+                        <label class="jar-bucket-input-wrap">
+                            <input class="jar-amount-input" type="text" inputmode="numeric" value="${viewModel.selected && draftAmount > 0 ? formatInputCurrency(draftAmount) : ''}" placeholder="0" data-jar-input="${jar.key}" ${disabledAttr} />
+                            <span class="jar-currency">₫</span>
+                        </label>
+
+                        <button type="button" class="jar-step-btn" data-jar-step="10000" data-jar-step-jar="${jar.key}" aria-label="Tăng" ${disabledAttr}>+</button>
+                    </div>
                 </div>
             </article>
         `;
@@ -1158,6 +1102,69 @@ function handleInsightAction() {
 }
 
 function attachBucketEvents() {
+    document.querySelectorAll('.jar-limit-period-select').forEach((select) => {
+        select.addEventListener('change', (e) => {
+            const jarKey = e.target.getAttribute('data-jar');
+            state.jarLimitPeriods = state.jarLimitPeriods || {};
+            state.jarLimitPeriods[jarKey] = e.target.value;
+            renderAll();
+        });
+    });
+
+    document.querySelectorAll('[data-jar-limit-inline]').forEach((input) => {
+        const limitKey = input.getAttribute('data-jar-limit-key');
+        
+        input.addEventListener('blur', async () => {
+            const currentValue = parseCurrencyInput(input.value);
+            input.value = currentValue > 0 ? formatInputCurrency(currentValue) : '';
+            
+            const oldLimit = Number(state.profile?.spending_limits?.[limitKey] || 0);
+            if (oldLimit !== currentValue) {
+                if (!requireJarAccess('Đăng nhập để lưu hạn mức.')) return;
+                try {
+                    const nextLimits = { ...(state.profile?.spending_limits || {}) };
+                    nextLimits[limitKey] = currentValue;
+                    
+                    const data = await upsertUserProfileWithFallback({
+                        user_id: state.session.user.id,
+                        email: state.session.user.email,
+                        full_name: state.session.user.user_metadata?.full_name || state.session.user.email.split('@')[0],
+                        spending_limits: nextLimits
+                    });
+                    state.profile = data || { ...state.profile, spending_limits: nextLimits };
+                    
+                    const originalColor = input.style.color;
+                    input.style.color = '#059669'; 
+                    input.style.transition = 'color 0.2s ease';
+                    const wrapper = input.closest('.jar-limit-inline-wrapper');
+                    const currency = wrapper?.querySelector('.jar-currency-small');
+                    if (currency) {
+                        currency.textContent = '✓';
+                        currency.style.color = '#059669';
+                    }
+                    
+                    setTimeout(() => {
+                        input.style.color = originalColor;
+                        if (currency) {
+                            currency.textContent = '₫';
+                            currency.style.color = '';
+                        }
+                    }, 2000);
+                } catch (error) {
+                    console.error('Lỗi khi lưu hạn mức:', error);
+                    input.style.color = '#dc2626';
+                    setTimeout(() => input.style.color = '', 2000);
+                }
+            }
+        });
+        
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                input.blur();
+            }
+        });
+    });
+
     const selected = getSelectedPendingIncome();
     if (!selected) return;
 
@@ -1193,17 +1200,6 @@ function attachBucketEvents() {
             const current = Number(state.allocationDraft[jarKey] || 0);
             state.allocationDraft[jarKey] = Math.max(0, current + delta);
             renderAll();
-        });
-    });
-
-    document.querySelectorAll('.jar-bucket-card').forEach((card) => {
-        card.addEventListener('click', (event) => {
-            if (event.target.closest('input, button, select, textarea, label, a')) return;
-
-            const jarKey = card.getAttribute('data-jar');
-            if (jarKey) {
-                setSelectedLimitJar(jarKey, { scrollIntoView: true });
-            }
         });
     });
 }
@@ -1300,150 +1296,6 @@ async function saveAllocation() {
     }
 }
 
-async function saveDailyLimit() {
-    if (state.isSavingDailyLimit) return;
-    if (!requireJarAccess('Đăng nhập để lưu hạn mức ngày.')) return;
-
-    const input = document.getElementById('jar-daily-limit-input');
-    const saveBtn = document.getElementById('jar-daily-limit-save');
-    const limit = parseCurrencyInput(input?.value || '');
-
-    if (!Number.isFinite(limit) || limit < 0) {
-        setDailyLimitFeedback('Số tiền không hợp lệ, bạn kiểm tra lại nhé.', 'error');
-        return;
-    }
-
-    state.isSavingDailyLimit = true;
-    if (saveBtn) saveBtn.disabled = true;
-    setDailyLimitFeedback(limit > 0 ? 'Đang lưu hạn mức ngày...' : 'Đang tắt hạn mức ngày...', 'info');
-
-    try {
-        const basePayload = {
-            user_id: state.session.user.id,
-            daily_spending_limit: limit
-        };
-
-        const payloads = [
-            {
-                ...basePayload,
-                email: state.session.user.email || state.profile?.email || '',
-                full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng'
-            },
-            {
-                ...basePayload,
-                full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng'
-            }
-        ];
-
-        const data = await upsertUserProfileWithFallback(payloads);
-
-        state.profile = data || {
-            ...state.profile,
-            daily_spending_limit: limit
-        };
-        state.dailyLimitDraft = null;
-        renderAll();
-        setDailyLimitFeedback(limit > 0 ? `Đã lưu hạn mức ngày ${formatCurrency(limit)}.` : 'Đã tắt hạn mức ngày.', 'success');
-    } catch (error) {
-        const missingColumns = getMissingUserProfileColumns(error);
-        if (missingColumns.includes('daily_spending_limit')) {
-            setDailyLimitFeedback(
-                'Cơ sở dữ liệu hiện chưa có cột hạn mức ngày. Hãy chạy migration để bật tính năng này.',
-                'error'
-            );
-        } else {
-            setDailyLimitFeedback(error.message || 'Không thể lưu hạn mức ngày.', 'error');
-        }
-    } finally {
-        state.isSavingDailyLimit = false;
-        if (saveBtn) saveBtn.disabled = false;
-    }
-}
-
-function setSelectedLimitJar(jarKey, { scrollIntoView = false } = {}) {
-    const normalized = normalizeJar(jarKey);
-    if (!normalized) return;
-
-    state.selectedLimitJarKey = normalized;
-    renderAll();
-
-    if (scrollIntoView) {
-        window.requestAnimationFrame(() => {
-            document.getElementById('jar-limit-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-    }
-}
-
-function applyJarLimitSuggestion() {
-    const selectedKey = getJarLimitSelectedKey(buildViewModel());
-    const insight = state.jarLimitInsights?.[selectedKey] || buildJarLimitInsight(state.transactions, state.profile, selectedKey);
-    state.jarLimitDrafts[selectedKey] = formatInputCurrency(insight.suggestedLimit);
-    setJarLimitFeedback(`Đã đưa gợi ý cho ${getJarCode(selectedKey)} vào ô nhập.`, 'info');
-    renderAll();
-}
-
-async function saveJarLimit() {
-    if (state.isSavingJarLimit) return;
-    if (!requireJarAccess('Đăng nhập để lưu hạn mức riêng cho từng hũ.')) return;
-
-    const selectedKey = getJarLimitSelectedKey(buildViewModel());
-    const input = document.getElementById('jar-limit-input');
-    const saveBtn = document.getElementById('jar-limit-save-btn');
-    const limit = parseCurrencyInput(input?.value || '');
-
-    if (!Number.isFinite(limit) || limit < 0) {
-        setJarLimitFeedback('Số tiền không hợp lệ, bạn kiểm tra lại nhé.', 'error');
-        return;
-    }
-
-    state.isSavingJarLimit = true;
-    if (saveBtn) saveBtn.disabled = true;
-    setJarLimitFeedback(`Đang lưu hạn mức cho ${getJarCode(selectedKey)}...`, 'info');
-
-    try {
-        const nextLimits = {
-            ...(state.profile?.spending_limits || {})
-        };
-        nextLimits[selectedKey] = limit;
-
-        const basePayload = {
-            user_id: state.session.user.id,
-            spending_limits: nextLimits
-        };
-
-        const payloads = [
-            {
-                ...basePayload,
-                email: state.session.user.email || state.profile?.email || '',
-                full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng'
-            },
-            {
-                ...basePayload,
-                full_name: state.session.user.user_metadata?.full_name || state.profile?.full_name || state.session.user.email || 'Người dùng'
-            }
-        ];
-
-        const data = await upsertUserProfileWithFallback(payloads);
-
-        state.profile = data || {
-            ...state.profile,
-            spending_limits: nextLimits
-        };
-        state.jarLimitDrafts[selectedKey] = limit > 0 ? formatInputCurrency(limit) : '';
-        renderAll();
-        setJarLimitFeedback(
-            limit > 0
-                ? `Đã lưu hạn mức ${formatCurrency(limit)} cho hũ ${getJarCode(selectedKey)}.`
-                : `Đã tắt hạn mức riêng cho hũ ${getJarCode(selectedKey)}.`,
-            'success'
-        );
-    } catch (error) {
-        setJarLimitFeedback(error.message || 'Không thể lưu hạn mức hũ.', 'error');
-    } finally {
-        state.isSavingJarLimit = false;
-        if (saveBtn) saveBtn.disabled = false;
-    }
-}
 
 function applyPreset(mode = 'default') {
     const selected = getSelectedPendingIncome();
@@ -1452,15 +1304,17 @@ function applyPreset(mode = 'default') {
         return;
     }
 
-    state.allocationDraft = mode === 'even' ? buildEvenAllocation(Number(selected.amount || 0)) : buildDefaultAllocation(Number(selected.amount || 0));
+    if (mode === 'manual') {
+        state.allocationDraft = {};
+    } else {
+        state.allocationDraft = mode === 'even' ? buildEvenAllocation(Number(selected.amount || 0)) : buildDefaultAllocation(Number(selected.amount || 0));
+    }
     renderAll();
 }
 
 function renderAll() {
     const viewModel = buildViewModel();
     renderSummaryCards(viewModel);
-    renderJarLimitPanel(viewModel);
-    renderDailyLimitCard(viewModel);
     renderSourceCard(viewModel);
     renderHistoryPanel();
     renderBucketGrid(viewModel);
@@ -1512,6 +1366,19 @@ async function loadJarSystem() {
     state.transactions = rowsResult.data || [];
     state.pendingIncomes = state.transactions.filter(isPendingIncome);
     state.dailyLimitDraft = null;
+    
+    state.jarLimitPeriods = {};
+    if (state.profile?.spending_limits) {
+        JARS.forEach(jar => {
+            const hasMonthly = !!state.profile.spending_limits[jar.key];
+            const hasDaily = !!state.profile.spending_limits[`${jar.key}_daily`];
+            if (hasDaily && !hasMonthly) {
+                state.jarLimitPeriods[jar.key] = 'daily';
+            } else {
+                state.jarLimitPeriods[jar.key] = 'monthly';
+            }
+        });
+    }
 
     const selectedStillExists = state.pendingIncomes.some((tx) => String(tx.id) === String(state.selectedPendingId));
     if (!selectedStillExists) {
@@ -1532,69 +1399,132 @@ function bindStaticEvents() {
     document.getElementById('jar-apply-btn')?.addEventListener('click', saveAllocation);
     document.getElementById('jar-preset-default')?.addEventListener('click', () => applyPreset('default'));
     document.getElementById('jar-preset-even')?.addEventListener('click', () => applyPreset('even'));
+    document.getElementById('jar-preset-manual')?.addEventListener('click', () => applyPreset('manual'));
     document.getElementById('jar-history-toggle')?.addEventListener('click', toggleHistoryPanel);
     document.getElementById('jar-insight-action')?.addEventListener('click', handleInsightAction);
 }
 
-function bindDailyLimitForm() {
-    const form = document.getElementById('jar-daily-limit-form');
-    const input = document.getElementById('jar-daily-limit-input');
 
-    form?.addEventListener('submit', (event) => {
-        event.preventDefault();
-        saveDailyLimit();
+
+function bindTransferModalEvents() {
+    const transferBtn = document.getElementById('jar-transfer-btn');
+    const transferModal = document.getElementById('jar-transfer-modal');
+    const transferCloseBtn = document.getElementById('jar-transfer-close');
+    const transferCancelBtn = document.getElementById('jar-transfer-cancel');
+    const transferSubmitBtn = document.getElementById('jar-transfer-submit');
+    const transferAmountInput = document.getElementById('jar-transfer-amount');
+
+    transferBtn?.addEventListener('click', openTransferModal);
+    transferCloseBtn?.addEventListener('click', () => transferModal?.close());
+    transferCancelBtn?.addEventListener('click', () => transferModal?.close());
+    
+    transferAmountInput?.addEventListener('input', (e) => {
+        formatCurrencyInputField(e.target);
+        const errorEl = document.getElementById('jar-transfer-error');
+        if (errorEl) errorEl.style.display = 'none';
     });
 
-    input?.addEventListener('input', (event) => {
-        formatCurrencyInputField(event.target);
-        state.dailyLimitDraft = event.target.value;
-        setDailyLimitFeedback('', 'info');
-    });
-
-    input?.addEventListener('blur', (event) => {
-        const parsed = parseCurrencyInput(event.target.value);
-        state.dailyLimitDraft = Number.isFinite(parsed) ? formatInputCurrency(parsed) : '';
-    });
+    transferSubmitBtn?.addEventListener('click', submitTransfer);
 }
 
-function bindJarLimitPanelEvents() {
-    const form = document.getElementById('jar-limit-form');
-    const select = document.getElementById('jar-limit-jar-select');
-    const input = document.getElementById('jar-limit-input');
-    const applyBtn = document.getElementById('jar-limit-apply-suggestion');
+function openTransferModal() {
+    const fromSelect = document.getElementById('jar-transfer-from');
+    const toSelect = document.getElementById('jar-transfer-to');
+    const amountInput = document.getElementById('jar-transfer-amount');
+    const errorEl = document.getElementById('jar-transfer-error');
 
-    form?.addEventListener('submit', (event) => {
-        event.preventDefault();
-        saveJarLimit();
+    if (!fromSelect || !toSelect) return;
+
+    const jarStats = buildJarStats(state.transactions);
+    let optionsHtml = '';
+    JARS.forEach(jar => {
+        const balance = jarStats[jar.key]?.balance || 0;
+        optionsHtml += `<option value="${jar.key}">${jar.code} - ${jar.label} (Còn ${formatCurrency(balance)})</option>`;
     });
 
-    select?.addEventListener('change', (event) => {
-        setSelectedLimitJar(event.target.value);
-    });
+    fromSelect.innerHTML = optionsHtml;
+    toSelect.innerHTML = optionsHtml;
+    
+    if (toSelect.options.length > 1) {
+        toSelect.selectedIndex = 1;
+    }
 
-    input?.addEventListener('input', (event) => {
-        formatCurrencyInputField(event.target);
-        const selectedKey = getJarLimitSelectedKey(buildViewModel());
-        state.jarLimitDrafts[selectedKey] = event.target.value;
-        setJarLimitFeedback('', 'info');
-    });
+    if (amountInput) amountInput.value = '';
+    if (errorEl) errorEl.style.display = 'none';
 
-    input?.addEventListener('blur', (event) => {
-        const selectedKey = getJarLimitSelectedKey(buildViewModel());
-        const parsed = parseCurrencyInput(event.target.value);
-        state.jarLimitDrafts[selectedKey] = Number.isFinite(parsed) ? formatInputCurrency(parsed) : '';
-    });
+    document.getElementById('jar-transfer-modal')?.showModal();
+}
 
-    applyBtn?.addEventListener('click', (event) => {
-        event.preventDefault();
-        applyJarLimitSuggestion();
-    });
+async function submitTransfer() {
+    const errorEl = document.getElementById('jar-transfer-error');
+    const showError = (msg) => {
+        if (errorEl) {
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+    };
+
+    if (!state.session) {
+        return showError('Vui lòng đăng nhập để sử dụng tính năng này.');
+    }
+
+    const fromKey = document.getElementById('jar-transfer-from')?.value;
+    const toKey = document.getElementById('jar-transfer-to')?.value;
+    const amountStr = document.getElementById('jar-transfer-amount')?.value || '0';
+    const amount = parseCurrencyInput(amountStr);
+    const submitBtn = document.getElementById('jar-transfer-submit');
+
+    if (fromKey === toKey) {
+        return showError('Vui lòng chọn hũ nhận khác hũ chuyển.');
+    }
+    if (amount <= 0) {
+        return showError('Số tiền chuyển phải lớn hơn 0.');
+    }
+
+    const jarStats = buildJarStats(state.transactions);
+    const currentBalance = jarStats[fromKey]?.balance || 0;
+    if (amount > currentBalance) {
+        return showError(`Hũ ${getJarCode(fromKey)} không đủ số dư để chuyển.`);
+    }
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+        const rows = [
+            {
+                user_id: state.session.user.id,
+                type: 'transfer_out',
+                amount: amount,
+                note: `Chuyển sang ${getJarLabel(toKey)}`,
+                jar: fromKey
+            },
+            {
+                user_id: state.session.user.id,
+                type: 'transfer_in',
+                amount: amount,
+                note: `Nhận từ ${getJarLabel(fromKey)}`,
+                jar: toKey
+            }
+        ];
+
+        const { error: txError } = await supabase
+            .from('transactions')
+            .insert(rows);
+        
+        if (txError) throw txError;
+
+        await loadJarSystem();
+        document.getElementById('jar-transfer-modal')?.close();
+    } catch (error) {
+        showError(error.message || 'Có lỗi xảy ra khi chuyển hũ. Vui lòng thử lại.');
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+    }
 }
 
 async function init() {
     bindStaticEvents();
-    bindDailyLimitForm();
-    bindJarLimitPanelEvents();
+    bindTransferModalEvents();
 
     try {
         state.session = await getFreshSession().catch(() => null);

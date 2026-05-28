@@ -390,6 +390,10 @@ async function mountSiteLayout() {
             }
         });
     }
+
+    import('./chatbot.js').then(({ initGlobalChatbot }) => {
+        initGlobalChatbot();
+    }).catch(console.error);
 }
 
 void mountSiteLayout();

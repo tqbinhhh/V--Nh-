@@ -1,12 +1,17 @@
 import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'node:path';
-import { backendApiPlugin } from './api/admin.js';
-import { geminiApiPlugin } from './api/gemini.js';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
     return {
-        plugins: [backendApiPlugin(env), geminiApiPlugin(env)],
+        server: {
+            proxy: {
+                '/api': {
+                    target: 'http://localhost:3000',
+                    changeOrigin: true
+                }
+            }
+        },
         define: {
             'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
             'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_KEY),

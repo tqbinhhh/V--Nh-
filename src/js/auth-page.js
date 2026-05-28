@@ -43,7 +43,7 @@ function buildUserProfilePayload(user, fullName, { includeEmail = true, includeL
 
 function getMissingUserProfileColumns(error) {
     const text = `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`.toLowerCase();
-    const candidates = ['email', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
+    const candidates = ['email', 'full_name', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
     return candidates.filter((column) => (
         text.includes(`'${column}'`) ||
         text.includes(`"${column}"`) ||
@@ -51,11 +51,13 @@ function getMissingUserProfileColumns(error) {
     ));
 }
 
-async function upsertUserProfileWithFallback(payloads) {
+async function upsertUserProfileWithFallback(initialPayload) {
+    let payload = Array.isArray(initialPayload) ? { ...initialPayload[0] } : { ...initialPayload };
     let lastError = null;
 
-    for (const payload of payloads) {
+    for (let attempt = 0; attempt < 5; attempt++) {
         const { error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' }).select('*').maybeSingle();
+        
         if (!error) {
             return;
         }
@@ -65,6 +67,10 @@ async function upsertUserProfileWithFallback(payloads) {
         if (!missingColumns.length) {
             break;
         }
+
+        missingColumns.forEach(col => {
+            delete payload[col];
+        });
     }
 
     throw lastError || new Error('Không thể lưu hồ sơ người dùng.');

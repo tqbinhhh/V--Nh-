@@ -722,8 +722,6 @@
 
 .jar-history-breakdown {
     grid-column: 1 / -1;
-    display: grid;
-    gap: 0.45rem;
     padding-top: 0.45rem;
     border-top: 1px dashed #e3eae6;
 }
@@ -734,6 +732,37 @@
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    cursor: pointer;
+    list-style: none; /* Hide default arrow */
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    user-select: none;
+}
+
+.jar-history-breakdown-title::-webkit-details-marker {
+    display: none;
+}
+
+.jar-history-breakdown-title::before {
+    content: '';
+    display: inline-block;
+    width: 0; 
+    height: 0; 
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 5px solid currentColor;
+    transition: transform 0.2s ease;
+}
+
+.jar-history-breakdown[open] .jar-history-breakdown-title::before {
+    transform: rotate(90deg);
+}
+
+.jar-history-breakdown-content {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.75rem;
 }
 
 .jar-history-breakdown-item {
@@ -852,7 +881,6 @@
 
 .jar-bucket-input-wrap {
     position: relative;
-    margin-top: 0.95rem;
 }
 
 .jar-amount-input {
@@ -875,6 +903,7 @@
     position: absolute;
     right: 0;
     bottom: 0.35rem;
+    padding-bottom: 0.35rem;
     color: #9ca3af;
     font-size: 0.85rem;
     font-weight: 800;
@@ -1202,4 +1231,247 @@
     .jar-limit-stats {
         grid-template-columns: 1fr;
     }
+}
+
+/* Modal styles */
+.jar-modal {
+    border: none;
+    padding: 0;
+    border-radius: 1.2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    background: #ffffff;
+    width: 90%;
+    max-width: 480px;
+    margin: auto;
+}
+
+.jar-modal::backdrop {
+    background: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.jar-modal-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.jar-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.jar-modal-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.jar-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 0.25rem;
+}
+
+.jar-modal-close:hover {
+    color: #4b5563;
+}
+
+.jar-modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.jar-transfer-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.jar-transfer-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #374151;
+}
+
+.jar-transfer-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1f2937;
+    background-color: #f9fafb;
+}
+
+.jar-modal-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    background: #f9fafb;
+    border-bottom-left-radius: 1.2rem;
+    border-bottom-right-radius: 1.2rem;
+}
+
+.jar-modal-footer .jar-primary-btn,
+.jar-modal-footer .jar-outline-btn {
+    width: auto;
+    padding: 0.6rem 1.25rem;
+}
+
+.jar-bucket-info {
+    margin-bottom: 1.25rem;
+}
+
+.jar-bucket-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.jar-stat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.jar-stat-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.jar-stat-value {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.jar-limit-inline-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 120px;
+}
+
+.jar-limit-inline-input {
+    width: 100%;
+    text-align: right;
+    padding: 0.25rem 1.25rem 0.25rem 0.5rem;
+    border: 1px solid transparent;
+    background: transparent;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #111827;
+    border-radius: 0.4rem;
+    transition: all 0.2s;
+}
+
+.jar-limit-inline-input:focus,
+.jar-limit-inline-input:hover {
+    border-color: #d1d5db;
+    background: #ffffff;
+    outline: none;
+}
+
+.jar-limit-inline-input::placeholder {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.jar-currency-small {
+    position: absolute;
+    right: 0.35rem;
+    color: #9ca3af;
+    font-size: 0.8rem;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.jar-bucket-action {
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+
+.jar-bucket-action.is-active {
+    opacity: 1;
+}
+
+.jar-bucket-action-header label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #4b5563;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.jar-bucket-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.jar-bucket-input-row .jar-bucket-input-wrap {
+    margin-top: 0;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.jar-bucket-input-row .jar-amount-input {
+    text-align: center;
+    padding: 0 1rem 0 0;
+}
+
+.jar-bucket-input-row .jar-step-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+    font-size: 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.2s;
+}
+
+.jar-bucket-input-row .jar-step-btn:hover:not(:disabled) {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.jar-bucket-input-row .jar-currency {
+    bottom: 0.5rem;
+    right: 50%;
+    transform: translateX(2.5rem);
 }

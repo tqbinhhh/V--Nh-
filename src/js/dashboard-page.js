@@ -1363,15 +1363,23 @@ async function saveSmartAddTransaction(preview) {
 
 async function processSmartAddQuickAction(userInput) {
     if (!requireDashboardLogin('Đăng nhập để dùng Smart Add AI.')) return null;
-    const preview = await analyzeSmartAddAI(userInput);
-    if (preview.type === 'expense') {
-        const confirmed = window.confirm(
-            `AI đề xuất trừ ${formatCurrency(preview.amount)} từ hũ ${getJarDisplayLabel(preview.jar)}. Bạn muốn lưu ngay?`
-        );
-        if (!confirmed) return null;
+    
+    try {
+        setQuickFeedback('Đang phân tích mô tả bằng AI...', 'info');
+        const preview = await analyzeSmartAddAI(userInput);
+        
+        openManualModal(preview.type, {
+            amount: preview.amount,
+            jar: preview.jar,
+            note: preview.note
+        });
+        
+        setQuickFeedback('AI đã điền thông tin, hãy kiểm tra lại và nhấn Lưu.', 'info');
+        return null;
+    } catch (error) {
+        setQuickFeedback(error.message || 'Không thể xử lý.', 'error');
+        return null;
     }
-
-    return saveSmartAddTransaction(preview);
 }
 
 async function handleSmartAddAI(userInput) {
@@ -1392,33 +1400,6 @@ async function submitSmartAddModal(event) {
         return;
     }
 
-    if (state.smartAddPreview?.type === 'expense') {
-        const preview = state.smartAddPreview;
-        if (submitBtn) submitBtn.disabled = true;
-
-        try {
-            state.quickBusy = true;
-            setQuickButtonsDisabled(true);
-            setSmartAddFeedback(`Đang xác nhận khoản chi ${formatCurrency(preview.amount)}...`, 'info');
-
-            const resultMessage = await saveSmartAddTransaction(preview);
-            state.smartAddDraft = '';
-            renderSmartAddPreview(null);
-            closeSmartAddModal({ preserveDraft: false });
-
-            await loadDashboard(state.session);
-            setQuickFeedback(resultMessage || 'Smart Add AI đã thêm giao dịch thành công.', 'success');
-        } catch (error) {
-            setSmartAddFeedback(error.message || 'Không thể xử lý mô tả giao dịch.', 'error');
-            setQuickFeedback(error.message || 'Không thể xử lý mô tả giao dịch.', 'error');
-        } finally {
-            state.quickBusy = false;
-            setQuickButtonsDisabled(false);
-            if (submitBtn) submitBtn.disabled = false;
-        }
-        return;
-    }
-
     if (submitBtn) submitBtn.disabled = true;
 
     try {
@@ -1428,20 +1409,16 @@ async function submitSmartAddModal(event) {
 
         const preview = await analyzeSmartAddAI(userInput);
 
-        if (preview.type === 'expense') {
-            renderSmartAddPreview(preview);
-            setSmartAddFeedback('AI đã bóc tách xong khoản chi. Kiểm tra preview rồi nhấn xác nhận để trừ vào hũ.', 'success');
-            return;
-        }
-
-        setSmartAddFeedback('AI xác định đây là khoản thu, đang lưu ngay...', 'info');
-        const resultMessage = await saveSmartAddTransaction(preview);
         state.smartAddDraft = '';
-        renderSmartAddPreview(null);
         closeSmartAddModal({ preserveDraft: false });
+        
+        openManualModal(preview.type, {
+            amount: preview.amount,
+            jar: preview.jar,
+            note: preview.note
+        });
 
-        await loadDashboard(state.session);
-        setQuickFeedback(resultMessage || 'Smart Add AI đã thêm giao dịch thành công.', 'success');
+        setQuickFeedback('AI đã điền thông tin, hãy kiểm tra lại và nhấn Lưu.', 'info');
     } catch (error) {
         setSmartAddFeedback(error.message || 'Không thể xử lý mô tả giao dịch.', 'error');
         setQuickFeedback(error.message || 'Không thể xử lý mô tả giao dịch.', 'error');

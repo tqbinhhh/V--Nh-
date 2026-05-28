@@ -4,12 +4,12 @@ import { showGuestAuthNotice } from './auth-guard.js';
 const supabase = getSupabaseClient();
 
 const JARS = [
-    { key: 'necessities', code: 'NEC', label: 'Thiết yếu', color: '#52c18c' },
-    { key: 'education', code: 'EDU', label: 'Giáo dục', color: '#3d68e1' },
-    { key: 'savings', code: 'SAV', label: 'Tiết kiệm', color: '#b97a3b' },
-    { key: 'entertainment', code: 'PLAY', label: 'Hưởng thụ', color: '#8d6dd7' },
-    { key: 'freedom', code: 'LTSS', label: 'Tự do tài chính', color: '#2f7a5d' },
-    { key: 'giving', code: 'GIVE', label: 'Cho đi', color: '#cf5648' }
+    { key: 'necessities', code: 'NEC', label: 'Thiết yếu', color: '#52c18c', defaultRatio: 55 },
+    { key: 'education', code: 'EDU', label: 'Giáo dục', color: '#3d68e1', defaultRatio: 10 },
+    { key: 'savings', code: 'SAV', label: 'Tiết kiệm', color: '#b97a3b', defaultRatio: 10 },
+    { key: 'entertainment', code: 'PLAY', label: 'Hưởng thụ', color: '#8d6dd7', defaultRatio: 10 },
+    { key: 'freedom', code: 'LTSS', label: 'Tự do tài chính', color: '#2f7a5d', defaultRatio: 10 },
+    { key: 'giving', code: 'GIVE', label: 'Cho đi', color: '#cf5648', defaultRatio: 5 }
 ];
 
 const JAR_ALIAS_MAP = {
@@ -183,7 +183,9 @@ function getJarLimit(profile, jarKey) {
     if (directLimit > 0) return directLimit;
 
     const monthlyFallback = Number(profile?.monthly_spending_limit || 0);
-    return monthlyFallback > 0 ? monthlyFallback / 6 : 0;
+    const jarConf = JARS.find(j => j.key === jarKey);
+    const ratio = jarConf ? jarConf.defaultRatio / 100 : 0;
+    return monthlyFallback > 0 ? monthlyFallback * ratio : 0;
 }
 
 function sumRows(rows, predicate) {
@@ -882,76 +884,8 @@ function renderReportsAiReminders(snapshot) {
         .join('');
 }
 
-function renderReportsAiThread(snapshot) {
-    const threadEl = document.getElementById('reports-ai-thread');
-    if (!threadEl) return;
-
-    const messages = Array.isArray(snapshot.threadMessages) && snapshot.threadMessages.length
-        ? snapshot.threadMessages
-        : [
-              {
-                  id: createMessageId('reports-ai-welcome'),
-                  role: 'assistant',
-                  content: snapshot.loading
-                      ? 'AI đang đọc dữ liệu báo cáo của bạn...'
-                      : `${snapshot.headline}\n\n${snapshot.summary}`
-              }
-          ];
-
-    threadEl.innerHTML = messages
-        .map((message) => {
-            const role = String(message.role || 'assistant').toLowerCase() === 'user' ? 'user' : 'assistant';
-            const label = role === 'user' ? 'Bạn' : 'AI';
-            return `
-                <article class="reports-ai-message is-${role}">
-                    <div class="reports-ai-message-head">${label}</div>
-                    <div class="reports-ai-message-body">${escapeHtml(message.content || '').replace(/\n/g, '<br />')}</div>
-                </article>
-            `;
-        })
-        .join('');
-
-    window.requestAnimationFrame(() => {
-        threadEl.scrollTop = threadEl.scrollHeight;
-    });
-}
-
-function renderReportsAiSuggestions(snapshot) {
-    const suggestionsEl = document.getElementById('reports-ai-suggestions');
-    if (!suggestionsEl) return;
-
-    const suggestions = Array.isArray(snapshot.suggestedQuestions) ? snapshot.suggestedQuestions.filter(Boolean) : [];
-    if (!suggestions.length) {
-        suggestionsEl.innerHTML = '';
-        return;
-    }
-
-    suggestionsEl.innerHTML = suggestions
-        .map((question) => {
-            return `
-                <button type="button" class="reports-ai-suggestion" data-reports-ai-question="${escapeHtml(question)}">
-                    ${escapeHtml(question)}
-                </button>
-            `;
-        })
-        .join('');
-
-    suggestionsEl.querySelectorAll('[data-reports-ai-question]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const input = document.getElementById('reports-ai-input');
-            if (!input) return;
-
-            const question = button.getAttribute('data-reports-ai-question') || '';
-            input.value = question;
-            input.focus();
-            try {
-                input.setSelectionRange(question.length, question.length);
-            } catch {
-                // ignore selection issues
-            }
-        });
-    });
-}
+// Bỏ renderReportsAiThread
+// Bỏ renderReportsAiSuggestions
 
 function updateReportsAiStatus(snapshot) {
     const statusEl = document.getElementById('reports-ai-chat-status');
@@ -1021,8 +955,6 @@ function renderInsight(viewModel) {
 
     renderReportsAiAlerts(snapshot);
     renderReportsAiReminders(snapshot);
-    renderReportsAiThread({ ...snapshot, threadMessages });
-    renderReportsAiSuggestions(snapshot);
     updateReportsAiStatus(snapshot);
     setText('reports-ai-toggle-meta', `${(snapshot.alerts || []).length} cảnh báo · ${(snapshot.reminders || []).length} nhắc nhở`);
 }
@@ -1169,7 +1101,7 @@ function renderCategories(viewModel) {
     const listEl = document.getElementById('report-category-list');
     if (!listEl) return;
 
-    const visibleItems = viewModel.categories.slice(0, 4);
+    const visibleItems = viewModel.categories.slice(0, 3);
     if (!visibleItems.some((item) => item.amount > 0)) {
         listEl.innerHTML = '<p class="reports-empty-copy">Chưa có chi tiêu tháng này để xác định hạng mục nổi bật.</p>';
         return;
@@ -1178,19 +1110,24 @@ function renderCategories(viewModel) {
     listEl.innerHTML = visibleItems
         .map((item) => {
             const width = Math.min(item.progress, 100);
-            const isDanger = item.progress > 100;
-            const note = isDanger ? `Vượt hạn mức ${Math.round(item.progress - 100)}%` : `Đang dùng ${Math.round(item.progress)}% hạn mức tham chiếu`;
+            const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>`;
 
             return `
-                <div class="reports-category-item">
+                <div class="reports-category-card">
                     <div class="reports-category-head">
-                        <div class="reports-category-name">${item.label}</div>
-                        <div class="reports-category-amount">${formatCurrency(item.amount)} / ${formatCurrency(item.limit)}</div>
+                        <span>
+                            ${iconSvg}
+                            ${item.label}
+                        </span>
+                        <span class="reports-category-amount">${formatCurrency(item.amount)}</span>
                     </div>
-                    <div class="reports-category-track">
-                        <span class="reports-category-bar" style="--bar-color: ${item.color}; width: ${width}%"></span>
+                    <div class="reports-category-bar">
+                        <div class="reports-category-fill" style="width: ${width}%;"></div>
                     </div>
-                    <div class="reports-category-note ${isDanger ? 'is-danger' : ''}">${note}</div>
+                    <div class="reports-category-meta">
+                        <span>Đã dùng: ${formatPercent(item.progress)}</span>
+                        <span>Ngân sách: ${formatCurrency(item.limit)}</span>
+                    </div>
                 </div>
             `;
         })
@@ -1204,21 +1141,27 @@ function renderJarStatuses(viewModel) {
     gridEl.innerHTML = viewModel.jarStatuses
         .map((item) => {
             const width = Math.min(item.progress, 100);
-            const toneClass = item.progress >= 100 ? 'is-danger' : item.progress >= 80 ? 'is-warning' : '';
-            const limitCopy = item.limit > 0 ? `${formatCurrency(item.expense)} / ${formatCurrency(item.limit)}` : `${formatCurrency(item.expense)} đã ghi nhận`;
+            const remaining = item.limit - item.expense;
+            let statusText = '';
+            
+            if (item.limit > 0) {
+                if (remaining >= 0) {
+                    statusText = `Dư: ${formatCurrency(remaining)}`;
+                } else {
+                    statusText = `Lố: ${formatCurrency(Math.abs(remaining))}`;
+                }
+            } else {
+                statusText = `${formatCurrency(item.expense)} đã chi`;
+            }
 
             return `
-                <article class="reports-status-card ${toneClass}">
-                    <div class="reports-status-label">${item.code}</div>
-                    <div class="reports-status-value-row">
-                        <strong class="reports-status-value">${formatPercent(item.progress)}</strong>
-                        <span class="reports-status-copy">${item.label}</span>
+                <div class="reports-jar-card">
+                    <div class="reports-jar-card-code">
+                        ${item.code} <span>${item.defaultRatio}%</span>
                     </div>
-                    <div class="reports-status-track">
-                        <span style="width: ${width}%; background: ${item.color};"></span>
-                    </div>
-                    <div class="reports-status-copy">${limitCopy}</div>
-                </article>
+                    <div class="reports-jar-card-label">Hũ ${item.label}</div>
+                    <div class="reports-jar-card-status">${statusText}</div>
+                </div>
             `;
         })
         .join('');
@@ -1285,109 +1228,7 @@ async function refreshReportsAssistant(viewModel, { force = false } = {}) {
     }
 }
 
-function clearReportsAiConversation() {
-    const viewModel = buildViewModel(state.profile, state.transactions);
-    const snapshot = getReportsAiSnapshot(viewModel);
-    state.reportsAi.messages = [createReportsAiSeedMessage(snapshot)];
-    state.reportsAi.lastError = '';
-
-    const input = document.getElementById('reports-ai-input');
-    if (input) input.value = '';
-
-    renderInsight(viewModel);
-}
-
-async function submitReportsAiChat(event) {
-    event.preventDefault();
-    if (state.reportsAi.sending) return;
-    if (!state.session) {
-        showGuestAuthNotice('Đăng nhập để chat với AI báo cáo.', window.location.pathname);
-        return;
-    }
-
-    const input = document.getElementById('reports-ai-input');
-    const userText = String(input?.value || '').trim();
-    if (!userText) {
-        state.reportsAi.lastError = 'Bạn hãy nhập câu hỏi trước nhé.';
-        renderInsight(buildViewModel(state.profile, state.transactions));
-        return;
-    }
-
-    const viewModel = buildViewModel(state.profile, state.transactions);
-    const snapshot = getReportsAiSnapshot(viewModel);
-
-    if (state.reportsAi.messages.length === 1 && state.reportsAi.messages[0]?.kind === 'seed') {
-        state.reportsAi.messages = [];
-    }
-
-    state.reportsAi.messages.push({
-        id: createMessageId('reports-ai-user'),
-        role: 'user',
-        content: userText
-    });
-
-    if (input) input.value = '';
-
-    state.reportsAi.sending = true;
-    state.reportsAi.lastError = '';
-    renderInsight(viewModel);
-
-    try {
-        const aiResult = await callGemini('reports-assistant', {
-            mode: 'chat',
-            context: buildReportsAssistantContext(viewModel),
-            messages: state.reportsAi.messages.slice(-8).map((message) => ({
-                role: message.role,
-                content: message.content
-            }))
-        });
-
-        const normalized = normalizeReportsAiResponse(aiResult, viewModel, 'chat');
-        state.reportsAi.messages.push({
-            id: createMessageId('reports-ai-assistant'),
-            role: 'assistant',
-            content: normalized.reply
-        });
-        state.reportsAi.summary = {
-            ...snapshot,
-            headline: normalized.headline || snapshot.headline,
-            summary: normalized.summary || snapshot.summary,
-            alerts: normalized.alerts.length ? normalized.alerts : snapshot.alerts,
-            reminders: normalized.reminders.length ? normalized.reminders : snapshot.reminders,
-            suggestedQuestions: normalized.suggestedQuestions.length ? normalized.suggestedQuestions : snapshot.suggestedQuestions,
-            actionLabel: normalized.actionLabel || snapshot.actionLabel,
-            actionHref: normalized.actionHref || snapshot.actionHref
-        };
-        state.reportsAi.lastUpdatedAt = new Date().toISOString();
-    } catch (error) {
-        state.reportsAi.messages.push({
-            id: createMessageId('reports-ai-error'),
-            role: 'assistant',
-            content: error.message || 'Mình chưa trả lời được lúc này.'
-        });
-        state.reportsAi.lastError = error.message || 'Mình chưa trả lời được lúc này.';
-    } finally {
-        state.reportsAi.sending = false;
-        renderInsight(viewModel);
-    }
-}
-
-function bindReportsAiChat() {
-    const form = document.getElementById('reports-ai-form');
-    const textarea = document.getElementById('reports-ai-input');
-    const clearBtn = document.getElementById('reports-ai-clear');
-
-    form?.addEventListener('submit', submitReportsAiChat);
-
-    textarea?.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-            event.preventDefault();
-            form?.requestSubmit?.();
-        }
-    });
-
-    clearBtn?.addEventListener('click', clearReportsAiConversation);
-}
+// Đã chuyển phần chat AI sang global chatbot
 
 async function loadReports(session) {
     if (!session) {
@@ -1491,7 +1332,6 @@ function bindEvents() {
 
 async function init() {
     bindEvents();
-    bindReportsAiChat();
 
     try {
         state.session = await getFreshSession().catch(() => null);

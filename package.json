@@ -6,13 +6,16 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.100.1",
-    "@tailwindcss/forms": "^0.5.7"
+    "@tailwindcss/forms": "^0.5.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
   },
   "scripts": {
     "build:css": "npx tailwindcss -i ./src/css/tailwind.css -o ./src/css/main.css",
     "watch:css": "npx tailwindcss -i ./src/css/tailwind.css -o ./src/css/main.css --watch",
     "dev": "concurrently \"npm run watch:css\" \"vite\"",
-    "build": "vite build",
+    "build": "npm run build:css && vite build",
     "preview": "vite preview"
   },
   "author": "",
