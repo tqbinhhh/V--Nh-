@@ -48,7 +48,7 @@ exports.handleGeminiAction = async (req, res) => {
         }
         const userId = userData.user.id;
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         let result;
 
         switch (data.action) {
