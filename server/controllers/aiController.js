@@ -146,6 +146,14 @@ Trả về JSON: {"storeName": "Tên cửa hàng", "totalAmount": number, "items
         res.json(result);
     } catch (e) {
         console.error('AI Error:', e);
+        
+        const errorMessage = String(e.message || '');
+        if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('Too Many Requests')) {
+            return res.status(429).json({ 
+                error: 'AI đang bận xử lý. Bạn đã đạt giới hạn miễn phí tạm thời, vui lòng đợi khoảng 1 phút rồi thử lại nhé!' 
+            });
+        }
+        
         res.status(500).json({ error: e.message });
     }
 };
