@@ -1778,7 +1778,6 @@ function bindQuickActions() {
     const resetBtn = document.getElementById('quick-reset-btn');
     const receiptBtn = document.getElementById('quick-receipt-btn');
     const smartBtn = document.getElementById('quick-smart-btn');
-    const insightBtn = document.getElementById('quick-insight-btn');
     const receiptInput = document.getElementById('quick-receipt-input');
 
     console.log('[DEBUG] Found buttons:', { incomeBtn: !!incomeBtn, expenseBtn: !!expenseBtn, assetBtn: !!assetBtn, resetBtn: !!resetBtn });
@@ -1861,13 +1860,6 @@ function bindQuickActions() {
         runQuickAction(() => handleReceiptScan(file), 'Đang quét hóa đơn...');
         input.value = '';
     });
-
-    if (insightBtn) {
-        insightBtn.addEventListener('click', () => {
-            console.log('[DEBUG] Insight button clicked');
-            runQuickAction(handleInsightAnalysis, 'Đang phân tích dữ liệu dashboard...');
-        });
-    }
     
     console.log('[DEBUG] bindQuickActions() complete');
 }
