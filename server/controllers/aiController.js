@@ -153,6 +153,11 @@ Trả về JSON: {"storeName": "Tên cửa hàng", "totalAmount": number, "items
                 error: 'AI đang bận xử lý. Bạn đã đạt giới hạn miễn phí tạm thời, vui lòng đợi khoảng 1 phút rồi thử lại nhé!' 
             });
         }
+        if (errorMessage.includes('503') || errorMessage.includes('Service Unavailable') || errorMessage.includes('high demand')) {
+            return res.status(503).json({ 
+                error: 'Hệ thống AI của Google hiện đang quá tải do nhu cầu cao. Vui lòng thử lại sau vài phút nhé!' 
+            });
+        }
         
         res.status(500).json({ error: e.message });
     }
