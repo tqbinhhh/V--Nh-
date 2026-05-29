@@ -194,7 +194,7 @@ function buildContext() {
     return {
         income,
         limits,
-        transactions: state.transactions.map(t => ({ amount: t.amount, type: t.type, category: t.category, date: t.created_at }))
+        transactions: state.transactions.map(t => ({ amount: t.amount, type: t.type, category: t.category, jar: t.jar, note: t.note, date: t.created_at }))
     };
 }
 

@@ -104,6 +104,7 @@ Trả về JSON định dạng: {"warning": "câu cảnh báo"}.`;
             case 'reports-assistant': {
                 const mode = data.payload.mode || 'summary';
                 let prompt = `Bạn là trợ lý AI cho ứng dụng quản lý chi tiêu cá nhân "Ví Nhỏ". Dữ liệu của người dùng: ${JSON.stringify(data.payload.context)}\n`;
+                prompt += `Quy ước mã hũ (jar): necessities (Thiết yếu), education (Giáo dục), savings (Tiết kiệm), entertainment (Hưởng thụ), freedom (Tự do tài chính), giving (Cho đi).\n`;
                 if (mode === 'chat') {
                     prompt += `Lịch sử chat: ${JSON.stringify(data.payload.messages)}\n`;
                     prompt += `Dựa vào dữ liệu và lịch sử chat, hãy trả lời câu hỏi mới nhất của người dùng một cách ngắn gọn, súc tích, và thân thiện. Trả về DUY NHẤT JSON theo định dạng: {"reply": "câu trả lời của bạn"}`;
