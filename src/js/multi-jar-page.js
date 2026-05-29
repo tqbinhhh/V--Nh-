@@ -180,13 +180,15 @@ function formatCurrencyInputField(input) {
 }
 
 function getMissingUserProfileColumns(error) {
-    const text = `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`.toLowerCase();
-    const candidates = ['email', 'full_name', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits'];
-    return candidates.filter((column) => (
-        text.includes(`'${column}'`) ||
-        text.includes(`"${column}"`) ||
-        text.includes(column)
-    ));
+    if (!error || !error.message) return [];
+    const msg = error.message.toLowerCase();
+    const candidates = ['email', 'full_name', 'monthly_spending_limit', 'daily_spending_limit', 'spending_limits', 'jar_limit_periods'];
+    return candidates.filter(col => 
+        msg.includes(`column "${col}" of relation "user_profiles" does not exist`) || 
+        msg.includes(`column "${col}" does not exist`) ||
+        msg.includes(`could not find the '${col}' column`) ||
+        msg.includes(`column user_profiles.${col} does not exist`)
+    );
 }
 
 async function upsertUserProfileWithFallback(initialPayload) {
