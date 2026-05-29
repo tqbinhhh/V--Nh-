@@ -104,11 +104,17 @@ async function callGlobalGemini(action, payload) {
         body: JSON.stringify({ action, payload })
     });
 
-    if (!response.ok) {
-        throw new Error('Lỗi kết nối tới AI. Vui lòng thử lại.');
+    let data = {};
+    try {
+        data = await response.json();
+    } catch {
+        // ignore
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error || 'Lỗi kết nối tới AI. Vui lòng thử lại.');
+    }
+
     if (data.error) throw new Error(data.error);
     return data;
 }
